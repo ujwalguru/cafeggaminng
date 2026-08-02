@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'wouter';
 import { Link } from 'wouter';
 import {
   MapPin, Star, Users, Clock, Phone, ArrowLeft, CheckCircle2, Wifi,
   Wind, UtensilsCrossed, Headphones, Zap, Trophy, Shield, Monitor,
-  ChevronRight, ExternalLink, MessageCircle, Gamepad2
+  ChevronRight, ExternalLink, MessageCircle, Gamepad2, X
 } from 'lucide-react';
 import { getCafeBySlug } from '@/lib/cafes';
 import { CafeCard } from '@/components/site/CafeCard';
@@ -13,6 +13,28 @@ import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
+
+// ── Station helpers ──────────────────────────────────────────────────────────
+type StationType = 'PC' | 'PS5';
+interface Station { id: number; label: string; available: boolean; occupiedUntil: string | null }
+
+function buildStations(type: StationType, total: number, avail: number, seed: number): Station[] {
+  // deterministically mark which stations are free vs occupied
+  const indices = Array.from({ length: total }, (_, i) => i);
+  // shuffle using seed
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = (seed * (i + 7) * 31 + 17) % (i + 1);
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  const freeSet = new Set(indices.slice(0, avail));
+  const times = ['12:30', '1:00', '1:30', '2:00', '2:30', '3:00', '4:00', '5:30', '6:00', '7:00'];
+  return Array.from({ length: total }, (_, i) => ({
+    id: i + 1,
+    label: `${type} ${i + 1}`,
+    available: freeSet.has(i),
+    occupiedUntil: freeSet.has(i) ? null : times[(seed + i * 3) % times.length] + ' PM',
+  }));
+}
 
 const amenityIconMap: Record<string, React.ElementType> = {
   'High-Speed WiFi': Wifi,
@@ -50,6 +72,21 @@ export default function CafeDetail() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
+
+  const [stationModal, setStationModal] = useState<StationType | null>(null);
+
+  // derive station counts from cafe data
+  const hasConsole = cafe.categories.includes('Console');
+  const pcTotal = hasConsole ? Math.round(cafe.totalSeats * 0.65) : cafe.totalSeats;
+  const ps5Total = hasConsole ? cafe.totalSeats - pcTotal : 0;
+  const pcAvail = hasConsole ? Math.round(cafe.availableSeats * 0.65) : cafe.availableSeats;
+  const ps5Avail = hasConsole ? Math.max(0, cafe.availableSeats - pcAvail) : 0;
+  const seed = parseInt(cafe.id, 10) || 1;
+  const pcStations = buildStations('PC', pcTotal, pcAvail, seed);
+  const ps5Stations = buildStations('PS5', ps5Total, ps5Avail, seed + 50);
+  const modalStations = stationModal === 'PC' ? pcStations : ps5Stations;
+  const modalAvail = stationModal === 'PC' ? pcAvail : ps5Avail;
+  const modalTotal = stationModal === 'PC' ? pcTotal : ps5Total;
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -254,29 +291,51 @@ export default function CafeDetail() {
           <aside className="w-full shrink-0 space-y-5 lg:w-72">
             {/* Seat availability */}
             <div className="sticky top-24 space-y-5">
-              <div className="rounded-2xl border border-border/60 bg-card p-5">
-                <h3 className="mb-4 text-sm font-bold">Seats Available</h3>
-                <div className="mb-4 flex items-end gap-2">
-                  <span className="text-4xl font-extrabold text-foreground">{cafe.availableSeats}</span>
-                  <span className="mb-1 text-sm text-muted-foreground">/ {cafe.totalSeats} total</span>
-                </div>
-                <div className="mb-4 h-2 overflow-hidden rounded-full bg-surface">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${(cafe.availableSeats / cafe.totalSeats) * 100}%`,
-                      background: cafe.availableSeats > 5 ? 'oklch(0.72 0.18 150)' : cafe.availableSeats > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)',
-                    }}
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Users className="size-3.5" />
-                  {cafe.availableSeats > 0 ? (
-                    <span className="text-[oklch(0.72_0.14_150)]">{cafe.availableSeats} seats free right now</span>
-                  ) : (
-                    <span className="text-[oklch(0.60_0.14_25)]">Currently full — check back soon</span>
-                  )}
-                </div>
+              {/* Station type boxes */}
+              <div className={`grid gap-3 ${hasConsole ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {/* PC Box */}
+                <button
+                  onClick={() => setStationModal('PC')}
+                  className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+                      <Monitor className="size-4" />
+                    </span>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${pcAvail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+                      {pcAvail > 0 ? 'Available' : 'Full'}
+                    </span>
+                  </div>
+                  <p className="text-xs font-semibold text-muted-foreground">PC</p>
+                  <p className="mt-0.5 text-2xl font-extrabold text-foreground">{pcAvail}<span className="text-sm font-normal text-muted-foreground">/{pcTotal}</span></p>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(pcAvail / pcTotal) * 100}%`, background: pcAvail > 3 ? 'oklch(0.72 0.18 150)' : pcAvail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
+                  </div>
+                  <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+                </button>
+
+                {/* PS5 Box */}
+                {hasConsole && (
+                  <button
+                    onClick={() => setStationModal('PS5')}
+                    className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+                        <Gamepad2 className="size-4" />
+                      </span>
+                      <span className={`text-[10px] font-semibold uppercase tracking-wide ${ps5Avail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+                        {ps5Avail > 0 ? 'Available' : 'Full'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-muted-foreground">PS5</p>
+                    <p className="mt-0.5 text-2xl font-extrabold text-foreground">{ps5Avail}<span className="text-sm font-normal text-muted-foreground">/{ps5Total}</span></p>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+                      <div className="h-full rounded-full transition-all" style={{ width: ps5Total > 0 ? `${(ps5Avail / ps5Total) * 100}%` : '0%', background: ps5Avail > 2 ? 'oklch(0.72 0.18 150)' : ps5Avail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
+                    </div>
+                    <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+                  </button>
+                )}
               </div>
 
               {/* Starting from */}
@@ -340,6 +399,62 @@ export default function CafeDetail() {
       </div>
 
       <Footer />
+
+      {/* ── Station modal ─────────────────────────────────────────── */}
+      {stationModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setStationModal(null)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div
+            className="relative z-10 w-full max-w-lg rounded-t-3xl border border-border/60 bg-[oklch(0.13_0.02_265)] p-6 shadow-2xl sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+                  {stationModal === 'PC' ? <Monitor className="size-5" /> : <Gamepad2 className="size-5" />}
+                </span>
+                <div>
+                  <h3 className="font-bold">{stationModal} Stations</h3>
+                  <p className="text-xs text-muted-foreground">{modalAvail} of {modalTotal} available right now</p>
+                </div>
+              </div>
+              <button onClick={() => setStationModal(null)} className="flex size-8 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Legend */}
+            <div className="mb-4 flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" /> Available</span>
+              <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.55_0.16_25)]" /> Occupied</span>
+            </div>
+
+            {/* Station grid */}
+            <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
+              {modalStations.map((s) => (
+                <div
+                  key={s.id}
+                  className={`rounded-xl border p-3 text-center transition-colors ${
+                    s.available
+                      ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
+                      : 'border-border/40 bg-[oklch(0.15_0.02_0/0.4)]'
+                  }`}
+                >
+                  <p className={`text-xs font-bold ${s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
+                  {s.available ? (
+                    <p className="mt-1 text-[10px] text-[oklch(0.65_0.14_150)]">Free</p>
+                  ) : (
+                    <p className="mt-1 text-[10px] text-muted-foreground">Until {s.occupiedUntil}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-4 text-center text-xs text-muted-foreground">Call the cafe to reserve a specific station</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
