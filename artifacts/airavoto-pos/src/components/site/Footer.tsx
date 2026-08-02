@@ -1,106 +1,138 @@
+import { useState } from 'react';
 import { Link } from 'wouter';
-import { Sparkles } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
-const cols = [
-  {
-    title: 'Product',
-    items: [
-      { label: 'Features', to: '/features' },
-      { label: 'Download', to: '/download' },
-      { label: 'Changelog', to: '/changelog' },
-      { label: 'Roadmap', to: '/roadmap' },
-    ],
-  },
-  {
-    title: 'Modules',
-    items: [
-      { label: 'Sessions', to: '/features#sessions' },
-      { label: 'Bookings', to: '/features#bookings' },
-      { label: 'Food & Inventory', to: '/features#food' },
-      { label: 'Expenses', to: '/features#expenses' },
-    ],
-  },
-  {
-    title: 'Resources',
-    items: [
-      { label: 'FAQ', to: '/faq' },
-      { label: 'Setup guide', to: '/download' },
-      { label: 'Changelog', to: '/changelog' },
-      { label: 'Roadmap', to: '/roadmap' },
-    ],
-  },
-  {
-    title: 'Legal',
-    items: [
-      { label: 'Privacy', to: '/privacy' },
-      { label: 'Terms', to: '/terms' },
-      { label: 'Security', to: '/privacy#security' },
-      { label: 'License', to: '/terms#license' },
-    ],
-  },
+const DISCOVER = [
+  { label: 'Browse all cafes', to: '/cafes' },
+  { label: 'By city', to: '/cafes' },
+  { label: 'VR zones', to: '/cafes?cat=VR' },
+  { label: 'PS5 cafes', to: '/cafes?cat=Console' },
+  { label: 'Racing simulators', to: '/cafes' },
 ];
 
-function FooterLink({ label, to }: { label: string; to: string }) {
-  // hash-only fragments use <a> so browser handles scroll
-  if (to.includes('#') && !to.startsWith('/features')) {
-    return (
-      <a href={to} className="text-sm text-foreground/80 hover:text-foreground">
-        {label}
-      </a>
-    );
-  }
-  return (
-    <Link href={to} className="text-sm text-foreground/80 hover:text-foreground">
-      {label}
-    </Link>
-  );
-}
+const CITIES = [
+  'Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai',
+  'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur',
+];
+
+const COMPANY = [
+  { label: 'Blog', to: '/blog' },
+  { label: 'List your cafe', to: '/list-cafe' },
+  { label: 'Contact', to: '/list-cafe' },
+  { label: 'Privacy', to: '/privacy' },
+  { label: 'Terms', to: '/terms' },
+];
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const [notified, setNotified] = useState(false);
+
+  function handleNotify(e: React.FormEvent) {
+    e.preventDefault();
+    if (email.trim()) setNotified(true);
+  }
+
   return (
-    <footer className="border-t border-border/60 py-16">
-      <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 md:grid-cols-[1.4fr_2fr]">
+    <footer className="border-t border-border/50 bg-[oklch(0.10_0_0)]">
+      <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1.6fr_1fr_1.2fr_1fr]">
+
+        {/* Brand + newsletter */}
         <div>
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="size-4" />
-            Airavoto Gaming POS
-          </div>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            The complete gaming center management system — sessions, bookings, food,
-            inventory and finances. Free to download, no hidden charges.
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex size-8 items-center justify-center rounded-full border border-border bg-foreground text-sm font-black text-background">
+              A
+            </span>
+            <span className="text-[15px] tracking-tight">
+              <span className="font-normal">Airavoto</span>
+              <span className="font-bold"> Cafe</span>
+            </span>
+          </Link>
+          <p className="mt-4 max-w-[230px] text-[13px] leading-relaxed text-muted-foreground">
+            Discover the best gaming cafes near you — PC, PS5, VR, simulators and more, rated by real gamers.
           </p>
-          <div className="mt-6 flex max-w-sm items-center gap-2 rounded-full border border-border bg-surface p-1.5">
-            <input
-              type="email"
-              placeholder="Get release updates"
-              aria-label="Email address"
-              className="w-full bg-transparent px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
-            <button className="rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground">
-              Subscribe
-            </button>
-          </div>
+
+          {/* Newsletter */}
+          <form onSubmit={handleNotify} className="mt-6">
+            {notified ? (
+              <p className="text-[13px] text-[oklch(0.72_0.14_150)]">✓ You're on the list!</p>
+            ) : (
+              <div className="flex items-center overflow-hidden rounded-full border border-border/60 bg-surface">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="New cafes in your city"
+                  className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="m-1 rounded-full bg-foreground px-4 py-1.5 text-[12px] font-semibold text-background transition-opacity hover:opacity-90"
+                >
+                  Notify me
+                </button>
+              </div>
+            )}
+          </form>
         </div>
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          {cols.map((c) => (
-            <div key={c.title}>
-              <h3 className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                {c.title}
-              </h3>
-              <ul className="mt-4 space-y-2.5">
-                {c.items.map((item) => (
-                  <li key={item.label}>
-                    <FooterLink label={item.label} to={item.to} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+
+        {/* Discover */}
+        <div>
+          <h3 className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+            Discover
+          </h3>
+          <ul className="mt-4 space-y-2.5">
+            {DISCOVER.map(({ label, to }) => (
+              <li key={label}>
+                <Link href={to} className="text-[13px] text-foreground/70 transition-colors hover:text-foreground">
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Cities */}
+        <div>
+          <h3 className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+            Cities
+          </h3>
+          <ul className="mt-4 space-y-2.5">
+            {CITIES.map((city) => (
+              <li key={city}>
+                <Link
+                  href={`/cafes?city=${encodeURIComponent(city)}`}
+                  className="flex items-center gap-1.5 text-[13px] text-foreground/70 transition-colors hover:text-foreground"
+                >
+                  <MapPin className="size-3 shrink-0 text-muted-foreground" />
+                  {city}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Company */}
+        <div>
+          <h3 className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+            Company
+          </h3>
+          <ul className="mt-4 space-y-2.5">
+            {COMPANY.map(({ label, to }) => (
+              <li key={label}>
+                <Link href={to} className="text-[13px] text-foreground/70 transition-colors hover:text-foreground">
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-      <div className="mx-auto mt-12 flex w-full max-w-6xl flex-col gap-2 border-t border-border/60 px-5 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>© {new Date().getFullYear()} Airavoto Gaming POS. All rights reserved.</p>
-        <p>100% free — no hidden charges.</p>
+
+      {/* Bottom bar */}
+      <div className="mx-auto flex max-w-6xl items-center justify-between border-t border-border/50 px-5 py-5">
+        <p className="text-[12px] text-muted-foreground">© 2026 Airavoto Cafe. All rights reserved.</p>
+        <p className="text-[12px] text-muted-foreground">Find gaming cafes across India</p>
       </div>
     </footer>
   );

@@ -1,123 +1,150 @@
-import { useEffect, useRef } from 'react';
-import { Link } from 'wouter';
+import { useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import {
-  Gamepad2, MapPin, Star, Zap, Trophy, Users, Shield, Clock,
-  Monitor, Cpu, Headphones, Wifi, ChevronRight, ArrowRight
+  Search, MapPin, Gamepad2, Zap, ArrowRight, ChevronRight
 } from 'lucide-react';
-import { SearchBar } from '@/components/site/SearchBar';
 import { CafeCard } from '@/components/site/CafeCard';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
-import { getFeaturedCafes, CITIES } from '@/lib/cafes';
+import { getTopRated, getCafeCountByCity, CITIES } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 
-const POPULAR_SEARCHES = ['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Pune', 'Chennai'];
+const POPULAR = ['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'];
 
-const HOW_IT_WORKS = [
-  { step: '01', icon: MapPin, title: 'Enter Your Location', desc: 'Type your city, area, or café name in the search bar to find options near you.' },
-  { step: '02', icon: Star, title: 'Compare & Explore', desc: 'Browse ratings, amenities, pricing, and live seat availability for every café.' },
-  { step: '03', icon: Gamepad2, title: 'Walk In & Play', desc: 'Head over — seats are shown in real-time so you know before you go.' },
-];
-
-const CATEGORIES = [
-  { label: 'PC Gaming', icon: Monitor, color: 'oklch(0.72_0.14_265)', bg: 'oklch(0.22_0.06_265)', desc: 'High-end rigs, 144–240 Hz monitors', cat: 'PC' },
-  { label: 'Console', icon: Gamepad2, color: 'oklch(0.72_0.14_310)', bg: 'oklch(0.22_0.06_310)', desc: 'PS5, Xbox Series X, Nintendo Switch', cat: 'Console' },
-  { label: 'VR Arena', icon: Headphones, color: 'oklch(0.72_0.16_150)', bg: 'oklch(0.22_0.06_150)', desc: 'Immersive VR headset experiences', cat: 'VR' },
-  { label: 'Mobile Zone', icon: Cpu, color: 'oklch(0.72_0.14_35)', bg: 'oklch(0.22_0.06_35)', desc: 'BGMI, Free Fire, tournament setups', cat: 'Mobile' },
-];
-
-const STATS = [
-  { value: '500+', label: 'Gaming Cafes' },
-  { value: '50+', label: 'Cities Covered' },
-  { value: '10K+', label: 'Gamers Monthly' },
-  { value: '4.6★', label: 'Avg. Rating' },
-];
-
-const PERKS = [
-  { icon: Zap, title: 'Real-Time Seats', desc: 'Live availability so you never walk in to a full house.' },
-  { icon: Trophy, title: 'Tournament Alerts', desc: 'Get notified about local tournaments and prize pools.' },
-  { icon: Shield, title: 'Verified Listings', desc: 'Every café is reviewed and verified before listing.' },
-  { icon: Clock, title: 'Honest Hours', desc: 'Up-to-date opening hours including late-night slots.' },
-  { icon: Users, title: 'Squad-Friendly', desc: 'Filter for group rooms and multi-seat booking options.' },
-  { icon: Wifi, title: 'Spec Transparency', desc: 'See GPU, internet speed, and peripheral specs upfront.' },
+const STEPS = [
+  {
+    num: '01',
+    icon: MapPin,
+    title: 'Enter your location',
+    desc: 'Type your city, area or neighbourhood to find gaming cafes nearby.',
+  },
+  {
+    num: '02',
+    icon: Gamepad2,
+    title: 'Filter by devices',
+    desc: 'Looking for PS5, VR or racing simulators? Filter by exactly what you want to play.',
+  },
+  {
+    num: '03',
+    icon: Zap,
+    title: 'Walk in and play',
+    desc: 'See ratings, pricing, open hours and amenities — then head straight in.',
+  },
 ];
 
 export default function Home() {
   useDocumentMeta({
     title: 'Airavoto Cafe — Find Gaming Cafes Near You',
-    description: 'Discover the best gaming cafes and esports lounges near you. Browse real-time seat availability, pricing, and amenities across India.',
+    description:
+      'Discover the best gaming cafes near you — PC, PS5, VR zones and more, rated and reviewed by real gamers.',
   });
 
-  const featuredCafes = getFeaturedCafes();
+  const [, navigate] = useLocation();
+  const [locationQ, setLocationQ] = useState('');
+  const [deviceQ, setDeviceQ] = useState('');
 
-  // Scroll reveal
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('revealed')),
-      { threshold: 0.1 }
-    );
-    sectionRefs.current.forEach((el) => el && obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
+  const allCafes = getTopRated(6);
+  const featured = allCafes.slice(0, 3);    // Top-rated near you
+  const favourites = allCafes.slice(3, 6);  // Gamers' favourites
+  const cityCounts = getCafeCountByCity();
 
-  const addRef = (el: HTMLElement | null, i: number) => { sectionRefs.current[i] = el; };
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (locationQ.trim()) params.set('q', locationQ.trim());
+    if (deviceQ.trim()) params.set('q', `${locationQ.trim()} ${deviceQ.trim()}`.trim());
+    navigate(`/cafes${params.toString() ? `?${params}` : ''}`);
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      {/* ── HERO ─────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden pb-24 pt-32">
-        {/* Background glows */}
+      {/* ── HERO ─────────────────────────────────────────────────────── */}
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden pb-20 pt-28 text-center">
+        {/* Glow */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div style={{ background: 'radial-gradient(55% 55% at 50% -5%, oklch(0.55_0.14_270/0.22), transparent)' }} className="absolute inset-0" />
-          <div style={{ background: 'radial-gradient(35% 35% at 20% 60%, oklch(0.55_0.14_310/0.10), transparent)' }} className="absolute inset-0" />
-          <div style={{ background: 'radial-gradient(35% 35% at 80% 70%, oklch(0.55_0.14_150/0.08), transparent)' }} className="absolute inset-0" />
-          {/* Grid */}
-          <svg className="absolute inset-0 h-full w-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <div
+            className="absolute inset-0"
+            style={{ background: 'radial-gradient(50% 50% at 50% 0%, oklch(0.40 0.02 265 / 0.25), transparent 70%)' }}
+          />
+          {/* Subtle dot-grid */}
+          <svg className="absolute inset-0 h-full w-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
+              <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="white" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
+            <rect width="100%" height="100%" fill="url(#dots)" />
           </svg>
         </div>
 
-        <div className="relative mx-auto w-full max-w-4xl px-5 text-center">
-          {/* Pill badge */}
-          <span className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.45_0.08_265/0.6)] bg-[oklch(0.20_0.06_265/0.5)] px-4 py-1.5 text-xs font-medium text-[oklch(0.80_0.12_265)] backdrop-blur-sm">
-            <Gamepad2 className="size-3.5" />
-            India's #1 Gaming Café Discovery Platform
+        <div className="relative mx-auto w-full max-w-2xl px-5">
+          {/* Badge */}
+          <span className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-surface px-4 py-1.5 text-[12px] text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-[oklch(0.72_0.18_150)]" />
+            15+ gaming cafes across India
           </span>
 
-          <h1 className="mt-6 text-5xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
-            Find Your Perfect{' '}
-            <span
-              className="relative inline-block"
-              style={{ WebkitTextFillColor: 'transparent', backgroundImage: 'linear-gradient(135deg, oklch(0.80 0.14 265), oklch(0.78 0.18 310), oklch(0.72 0.18 150))', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}
-            >
-              Gaming Cafe
-            </span>
+          {/* Heading — 3 fading lines */}
+          <h1 className="mt-7 text-5xl font-extrabold leading-[1.07] tracking-tight sm:text-6xl lg:text-7xl">
+            <span className="block text-foreground">Find your perfect</span>
+            <span className="block text-foreground/55">gaming cafe</span>
+            <span className="block text-foreground/30">near you.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Browse real-time seat availability, compare pricing and amenities, and discover the best gaming cafes and esports lounges near you.
+
+          <p className="mx-auto mt-6 max-w-md text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
+            Discover gaming cafes with the best PCs, PS5s, VR zones and more —
+            rated and reviewed by real gamers.
           </p>
 
-          {/* Search bar */}
-          <div className="mx-auto mt-10 max-w-2xl">
-            <SearchBar variant="hero" />
-          </div>
+          {/* Two-field search */}
+          <form onSubmit={handleSearch} className="mx-auto mt-10 max-w-xl">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:overflow-hidden sm:rounded-full sm:border sm:border-border/60 sm:bg-surface sm:p-1.5">
+              {/* Location */}
+              <div className="flex flex-1 items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:py-2">
+                <MapPin className="size-4 shrink-0 text-muted-foreground" />
+                <input
+                  value={locationQ}
+                  onChange={(e) => setLocationQ(e.target.value)}
+                  placeholder="City or area..."
+                  className="w-full bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+              </div>
 
-          {/* Popular searches */}
+              {/* Divider */}
+              <div className="hidden h-5 w-px shrink-0 bg-border/60 sm:block" />
+
+              {/* Device type */}
+              <div className="flex flex-1 items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:py-2">
+                <Gamepad2 className="size-4 shrink-0 text-muted-foreground" />
+                <input
+                  value={deviceQ}
+                  onChange={(e) => setDeviceQ(e.target.value)}
+                  placeholder="PS5, VR, tournaments..."
+                  className="w-full bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+              </div>
+
+              {/* Button */}
+              <button
+                type="submit"
+                className="flex items-center justify-center gap-2 rounded-full bg-foreground px-7 py-3 text-[14px] font-bold text-background transition-opacity hover:opacity-90"
+              >
+                <Search className="size-4" />
+                Search
+              </button>
+            </div>
+          </form>
+
+          {/* Popular chips */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-xs text-muted-foreground">Popular:</span>
-            {POPULAR_SEARCHES.map((city) => (
+            <span className="text-[12px] text-muted-foreground">Popular:</span>
+            {POPULAR.map((city) => (
               <Link
                 key={city}
                 href={`/cafes?city=${encodeURIComponent(city)}`}
-                className="rounded-full border border-border/60 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                className="rounded-full border border-border/50 px-3 py-1 text-[12px] text-muted-foreground transition-colors hover:border-border hover:text-foreground"
               >
                 {city}
               </Link>
@@ -126,177 +153,122 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── STATS ─────────────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 0)}
-        className="reveal mx-auto max-w-4xl px-5 pb-24"
-      >
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-border/60 bg-border/60 sm:grid-cols-4">
-          {STATS.map(({ value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-1 bg-card px-6 py-8 text-center">
-              <span className="text-3xl font-extrabold tracking-tight text-foreground">{value}</span>
-              <span className="text-xs text-muted-foreground">{label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CATEGORIES ────────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 1)}
-        className="reveal mx-auto max-w-5xl px-5 pb-28"
-      >
-        <div className="mb-10 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Browse by Type</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Every Way to Play</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {CATEGORIES.map(({ label, icon: Icon, color, bg, desc, cat }) => (
-            <Link
-              key={cat}
-              href={`/cafes?cat=${cat}`}
-              className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-5 transition-all duration-200 hover:-translate-y-1 hover:border-border"
-            >
-              <span
-                className="flex size-11 items-center justify-center rounded-xl"
-                style={{ background: `oklch(from ${bg} l c h / 0.5)`, color }}
-              >
-                <Icon className="size-5" />
-              </span>
-              <div>
-                <div className="text-sm font-bold text-foreground">{label}</div>
-                <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{desc}</div>
-              </div>
-              <span className="mt-auto flex items-center gap-1 text-[11px] font-medium" style={{ color }}>
-                Explore <ChevronRight className="size-3" />
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FEATURED CAFES ────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 2)}
-        className="reveal mx-auto max-w-5xl px-5 pb-28"
-      >
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+      {/* ── FEATURED — Top-rated near you ──────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 pb-20">
+        <div className="mb-7 flex items-end justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Top Picks</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Featured Cafes</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Featured</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Top-rated near you</h2>
           </div>
-          <Link href="/cafes" className="flex items-center gap-1.5 rounded-full border border-border/60 px-5 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
-            View all cafes <ArrowRight className="size-4" />
+          <Link href="/cafes" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+            View all <ArrowRight className="size-4" />
           </Link>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2">
-          {featuredCafes.slice(0, 4).map((cafe) => (
-            <CafeCard key={cafe.id} cafe={cafe} />
-          ))}
+        <div className="grid gap-5 sm:grid-cols-3">
+          {featured.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} />)}
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 3)}
-        className="reveal relative overflow-hidden py-28"
-      >
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(60% 60% at 50% 50%, oklch(0.50_0.10_265/0.06), transparent)' }} />
-        <div className="relative mx-auto max-w-4xl px-5">
-          <div className="mb-14 text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Simple Process</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Find a Café in 3 Steps</h2>
+      {/* ── HIGHEST RATED — Gamers' favourites ─────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 pb-20">
+        <div className="mb-7 flex items-end justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Highest Rated</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Gamers' favourites</h2>
           </div>
-          <div className="grid gap-8 sm:grid-cols-3">
-            {HOW_IT_WORKS.map(({ step, icon: Icon, title, desc }) => (
-              <div key={step} className="flex flex-col items-start gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-2xl border border-[oklch(0.45_0.08_265/0.5)] bg-[oklch(0.22_0.06_265/0.4)]">
-                    <Icon className="size-5 text-[oklch(0.80_0.12_265)]" />
-                  </span>
-                  <span className="text-4xl font-black text-border">{step}</span>
+          <Link href="/cafes" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+            See all <ArrowRight className="size-4" />
+          </Link>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-3">
+          {favourites.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} />)}
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ───────────────────────────────────────────── */}
+      <section className="py-20">
+        <div className="mx-auto max-w-6xl px-5">
+          <div className="mb-12 text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">How it works</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Find and visit in 3 steps</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {STEPS.map(({ num, icon: Icon, title, desc }) => (
+              <div
+                key={num}
+                className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-border/50 bg-card p-6"
+              >
+                {/* Large step number background */}
+                <span className="absolute right-4 top-3 select-none text-5xl font-black text-border/60">
+                  {num}
+                </span>
+                <span className="flex size-10 items-center justify-center rounded-xl border border-border/50 bg-surface">
+                  <Icon className="size-5 text-muted-foreground" />
+                </span>
+                <div>
+                  <h3 className="text-[15px] font-bold">{title}</h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{desc}</p>
                 </div>
-                <h3 className="text-base font-bold">{title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── WHY AIRAVOTO ──────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 4)}
-        className="reveal mx-auto max-w-5xl px-5 py-28"
-      >
-        <div className="mb-10 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why Us</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Built for Gamers, by Gamers</h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            We obsess over the details so you always know exactly what you're walking into.
-          </p>
+      {/* ── BROWSE BY CITY ─────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 pb-20">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Browse</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Find cafes by city</h2>
+          </div>
+          <Link href="/cafes" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+            All cities <ChevronRight className="size-4" />
+          </Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PERKS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="group flex gap-4 rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-[oklch(0.45_0.08_265/0.4)] bg-[oklch(0.22_0.06_265/0.3)]">
-                <Icon className="size-5 text-[oklch(0.80_0.12_265)]" />
-              </span>
-              <div>
-                <div className="text-sm font-bold text-foreground">{title}</div>
-                <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CITIES ────────────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 5)}
-        className="reveal mx-auto max-w-4xl px-5 pb-28"
-      >
-        <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Explore Cities</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Find Cafes In Your City</h2>
-        </div>
-        <div className="flex flex-wrap justify-center gap-3">
-          {CITIES.map((city) => (
-            <Link
-              key={city}
-              href={`/cafes?city=${encodeURIComponent(city)}`}
-              className="group flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-5 py-3 text-sm font-medium text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-[oklch(0.45_0.08_265/0.6)] hover:text-foreground"
-            >
-              <MapPin className="size-4 text-[oklch(0.65_0.12_265)]" />
-              {city}
-            </Link>
-          ))}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+          {CITIES.map((city) => {
+            const count = cityCounts[city] ?? 0;
+            return (
+              <Link
+                key={city}
+                href={`/cafes?city=${encodeURIComponent(city)}`}
+                className="group flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-card py-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:bg-[oklch(0.18_0_0)]"
+              >
+                <span className="text-4xl font-black text-foreground/80 transition-colors group-hover:text-foreground">
+                  {city[0]}
+                </span>
+                <span className="text-[13px] font-semibold text-foreground">{city}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {count} {count === 1 ? 'cafe' : 'cafes'}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────────────── */}
-      <section
-        ref={(el) => addRef(el, 6)}
-        className="reveal mx-5 mb-24 overflow-hidden rounded-3xl border border-[oklch(0.45_0.08_265/0.3)] bg-[oklch(0.18_0.04_265/0.6)]"
-        style={{ background: 'linear-gradient(135deg, oklch(0.18 0.06 265 / 0.8), oklch(0.18 0.06 310 / 0.5))' }}
-      >
-        <div className="px-8 py-16 text-center md:py-20">
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Own a Gaming Café?</h2>
-          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            List your café on Airavoto and reach thousands of gamers looking for a place to play in your area.
+      {/* ── OWN A GAMING CAFE? ─────────────────────────────────────── */}
+      <section className="mx-5 mb-24">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl border border-border/50 bg-[oklch(0.16_0_0)] px-8 py-16 text-center">
+          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Own a gaming cafe?
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+            List your cafe on Airavoto for free and get discovered by thousands of gamers in your city.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/list-cafe"
-              className="rounded-full bg-primary px-8 py-3 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+              className="rounded-full bg-foreground px-7 py-3 text-[14px] font-bold text-background transition-opacity hover:opacity-90"
             >
-              List Your Café Free →
+              List your cafe free
             </Link>
             <Link
               href="/cafes"
-              className="rounded-full border border-border px-8 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="flex items-center gap-1.5 rounded-full border border-border/60 px-7 py-3 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Browse All Cafes
+              Browse cafes <ArrowRight className="size-4" />
             </Link>
           </div>
         </div>

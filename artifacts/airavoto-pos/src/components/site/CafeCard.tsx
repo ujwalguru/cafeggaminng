@@ -1,120 +1,101 @@
 import { Link } from 'wouter';
-import { MapPin, Star, Users, Wifi, Zap, Wind, UtensilsCrossed, Clock } from 'lucide-react';
-import type { Cafe } from '@/lib/cafes';
+import { MapPin, Star, Monitor, Gamepad2, Headphones, Smartphone } from 'lucide-react';
+import type { Cafe, GameCategory } from '@/lib/cafes';
 
-const amenityIcons: Record<string, { icon: React.ElementType; label: string }> = {
-  'High-Speed WiFi': { icon: Wifi, label: 'WiFi' },
-  'AC': { icon: Wind, label: 'AC' },
-  'Food Menu': { icon: UtensilsCrossed, label: 'Food' },
-  'Snack Bar': { icon: UtensilsCrossed, label: 'Snacks' },
-  'Tournaments': { icon: Zap, label: 'Tournaments' },
+const CATEGORY_ICON: Record<GameCategory, React.ElementType> = {
+  PC: Monitor,
+  Console: Gamepad2,
+  VR: Headphones,
+  Mobile: Smartphone,
 };
 
-const categoryColors: Record<string, string> = {
-  PC: 'bg-[oklch(0.28_0.06_265)] text-[oklch(0.82_0.14_265)]',
-  Console: 'bg-[oklch(0.26_0.06_310)] text-[oklch(0.82_0.14_310)]',
-  VR: 'bg-[oklch(0.26_0.06_150)] text-[oklch(0.78_0.16_150)]',
-  Mobile: 'bg-[oklch(0.26_0.06_35)] text-[oklch(0.82_0.14_35)]',
-};
+const TOP_AMENITIES = ['AC', 'High-Speed WiFi', 'Full Food Menu', 'Food Menu', 'Snack Bar', 'Tournaments', 'Live Streaming Setup', 'Private Rooms'];
 
-interface CafeCardProps {
-  cafe: Cafe;
-  variant?: 'default' | 'featured';
-}
-
-export function CafeCard({ cafe, variant = 'default' }: CafeCardProps) {
-  const isFeatured = variant === 'featured';
+export function CafeCard({ cafe }: { cafe: Cafe }) {
+  // Take up to 3 amenities to show as chips; count overflow
+  const chips = cafe.amenities.filter((a) => TOP_AMENITIES.includes(a)).slice(0, 3);
+  const overflow = cafe.amenities.length - chips.length;
 
   return (
     <Link href={`/cafes/${cafe.slug}`} className="group block focus:outline-none">
-      <article
-        className={`relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-[0_0_40px_oklch(0.50_0.08_265/0.15)] ${isFeatured ? 'md:flex-row' : ''}`}
-      >
+      <article className="flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_8px_32px_oklch(0_0_0/0.4)]">
+
         {/* Image */}
-        <div className={`relative shrink-0 overflow-hidden ${isFeatured ? 'h-56 md:h-auto md:w-80' : 'h-48'}`}>
+        <div className="relative h-44 overflow-hidden">
           <img
             src={cafe.image}
             alt={cafe.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.14_0_0/0.85)] via-[oklch(0.14_0_0/0.20)] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.12_0_0/0.7)] via-transparent to-transparent" />
 
-          {/* Open/Closed badge */}
-          <span
-            className={`absolute right-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-sm ${
-              cafe.isOpen
-                ? 'bg-[oklch(0.20_0.06_150/0.9)] text-[oklch(0.78_0.18_150)]'
-                : 'bg-[oklch(0.20_0.06_25/0.9)] text-[oklch(0.72_0.18_25)]'
-            }`}
-          >
-            <span className={`size-1.5 rounded-full ${cafe.isOpen ? 'bg-[oklch(0.72_0.18_150)]' : 'bg-[oklch(0.60_0.18_25)]'}`} />
-            {cafe.isOpen ? `Open · ${cafe.openUntil}` : cafe.openUntil}
-          </span>
+          {/* Featured badge */}
+          {cafe.featured && (
+            <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-semibold text-black shadow-sm">
+              Featured
+            </span>
+          )}
 
-          {/* Category chips on image bottom */}
-          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1">
-            {cafe.categories.slice(0, 3).map((cat) => (
-              <span key={cat} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${categoryColors[cat]}`}>
-                {cat}
-              </span>
-            ))}
+          {/* Category device icons */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+            {cafe.categories.slice(0, 4).map((cat) => {
+              const Icon = CATEGORY_ICON[cat];
+              return (
+                <span
+                  key={cat}
+                  className="flex size-7 items-center justify-center rounded-full bg-[oklch(0.14_0_0/0.75)] backdrop-blur-sm"
+                  title={cat}
+                >
+                  <Icon className="size-3.5 text-white/80" />
+                </span>
+              );
+            })}
           </div>
         </div>
 
         {/* Body */}
-        <div className="flex flex-1 flex-col gap-3 p-4">
-          {/* Name + location */}
-          <div>
-            <h3 className="text-base font-bold leading-snug text-foreground group-hover:text-[oklch(0.85_0.06_265)] transition-colors">
+        <div className="flex flex-col gap-2.5 p-4">
+          {/* Name + rating */}
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-[15px] font-bold leading-snug text-foreground group-hover:text-foreground/90">
               {cafe.name}
             </h3>
-            <p className="mt-0.5 flex items-center gap-1 text-[13px] text-muted-foreground">
-              <MapPin className="size-3 shrink-0" />
-              {cafe.area}, {cafe.city}
-            </p>
-          </div>
-
-          {/* Rating + reviews + seats */}
-          <div className="flex items-center gap-3 text-[13px]">
-            <span className="flex items-center gap-1 font-medium text-[oklch(0.80_0.14_60)]">
+            <span className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[oklch(0.80_0.14_60)]">
               <Star className="size-3.5 fill-[oklch(0.80_0.14_60)]" />
               {cafe.rating}
-              <span className="font-normal text-muted-foreground">({cafe.reviewCount})</span>
-            </span>
-            <span className="text-border">|</span>
-            <span className="flex items-center gap-1 text-muted-foreground">
-              <Users className="size-3.5" />
-              {cafe.availableSeats > 0 ? (
-                <span className="text-[oklch(0.72_0.14_150)]">{cafe.availableSeats} seats free</span>
-              ) : (
-                <span className="text-[oklch(0.60_0.14_25)]">Full</span>
-              )}
             </span>
           </div>
 
-          {/* Amenities */}
-          <div className="flex flex-wrap gap-1.5">
-            {Object.entries(amenityIcons)
-              .filter(([key]) => cafe.amenities.includes(key as typeof cafe.amenities[number]))
-              .slice(0, 4)
-              .map(([key, { icon: Icon, label }]) => (
-                <span key={key} className="flex items-center gap-1 rounded-lg border border-border/60 bg-surface px-2 py-1 text-[11px] text-muted-foreground">
-                  <Icon className="size-3" />
-                  {label}
-                </span>
-              ))}
+          {/* Location */}
+          <p className="flex items-center gap-1 text-[12px] text-muted-foreground">
+            <MapPin className="size-3 shrink-0" />
+            {cafe.area}, {cafe.city}
+          </p>
+
+          {/* Amenity chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {chips.map((a) => (
+              <span
+                key={a}
+                className="rounded-full border border-border/50 bg-surface px-2.5 py-0.5 text-[11px] text-muted-foreground"
+              >
+                {a}
+              </span>
+            ))}
+            {overflow > 0 && (
+              <span className="rounded-full border border-border/50 bg-surface px-2.5 py-0.5 text-[11px] text-muted-foreground">
+                +{overflow}
+              </span>
+            )}
           </div>
 
-          {/* Price + CTA row */}
-          <div className="mt-auto flex items-center justify-between pt-1">
-            <div>
-              <span className="text-lg font-bold text-foreground">₹{cafe.pricePerHour}</span>
-              <span className="ml-1 text-xs text-muted-foreground">/ hr</span>
-            </div>
-            <span className="flex items-center gap-1 rounded-xl bg-primary/10 px-4 py-2 text-xs font-semibold text-primary ring-1 ring-primary/20 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-              <Clock className="size-3.5" />
-              Book Now
+          {/* Price + seats/hours */}
+          <div className="flex items-center justify-between border-t border-border/40 pt-2.5 text-[12px]">
+            <span className="font-semibold text-foreground">
+              From <span className="text-[14px]">₹{cafe.pricePerHour}</span>/hr
+            </span>
+            <span className="text-muted-foreground">
+              {cafe.totalSeats} seats · {cafe.hoursDisplay}
             </span>
           </div>
         </div>
