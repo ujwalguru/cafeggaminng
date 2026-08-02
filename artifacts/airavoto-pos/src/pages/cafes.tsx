@@ -199,7 +199,7 @@ export default function CafesPage() {
         {/* ── Desktop sidebar + grid ──────────────────────────────── */}
         <div className="flex gap-8">
           {/* Sidebar */}
-          <aside className="hidden w-52 shrink-0 space-y-6 sm:block">
+          <aside className="hidden w-52 shrink-0 space-y-6 sm:block sticky top-16 self-start max-h-[calc(100vh-4rem)] overflow-y-auto">
             <div>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">City</p>
               <div className="space-y-1">
