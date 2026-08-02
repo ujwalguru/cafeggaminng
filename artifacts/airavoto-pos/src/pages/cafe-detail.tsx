@@ -4,7 +4,7 @@ import { Link } from 'wouter';
 import {
   MapPin, Star, Users, Clock, Phone, ArrowLeft, CheckCircle2, Wifi,
   Wind, UtensilsCrossed, Headphones, Zap, Trophy, Shield, Monitor,
-  ChevronRight, ExternalLink, MessageCircle
+  ChevronRight, ExternalLink, MessageCircle, Gamepad2
 } from 'lucide-react';
 import { getCafeBySlug } from '@/lib/cafes';
 import { CafeCard } from '@/components/site/CafeCard';
@@ -129,6 +129,22 @@ export default function CafeDetail() {
             <section>
               <h2 className="mb-3 text-lg font-bold">About {cafe.name}</h2>
               <p className="text-sm leading-relaxed text-muted-foreground">{cafe.about}</p>
+            </section>
+
+            {/* Games */}
+            <section>
+              <h2 className="mb-4 text-lg font-bold">Games Available</h2>
+              <div className="flex flex-wrap gap-2">
+                {cafe.games.map((game) => (
+                  <span
+                    key={game}
+                    className="flex items-center gap-1.5 rounded-full border border-[oklch(0.40_0.12_265/0.5)] bg-[oklch(0.22_0.06_265/0.35)] px-3.5 py-1.5 text-xs font-medium text-[oklch(0.85_0.10_265)]"
+                  >
+                    <Gamepad2 className="size-3 shrink-0 opacity-70" />
+                    {game}
+                  </span>
+                ))}
+              </div>
             </section>
 
             {/* Amenities */}

@@ -56,6 +56,7 @@ export interface Cafe {
   maps: string;
   plans: CafePlan[];
   reviews: CafeReview[];
+  games: string[];
   featured?: boolean;
 }
 
@@ -101,6 +102,7 @@ export const cafes: Cafe[] = [
       { author: 'Rahul V.', avatar: 'R', rating: 5, comment: 'Best café in Bangalore hands down. RTX 4090 machines, zero lag, and the food is actually good!', date: 'Jul 2026' },
       { author: 'Sneha K.', avatar: 'S', rating: 5, comment: 'The VR section blew my mind. Tournament every Friday night.', date: 'Jun 2026' },
     ],
+    games: ['Valorant', 'CS2', 'Warzone', 'GTA V', 'FIFA 25', 'God of War', 'Beat Saber', 'Fortnite'],
     featured: true,
   },
   {
@@ -143,6 +145,7 @@ export const cafes: Cafe[] = [
       { author: 'Aryan P.', avatar: 'A', rating: 5, comment: 'Tournament-grade setup. The private rooms for squad games are a game-changer.', date: 'Jul 2026' },
       { author: 'Priya N.', avatar: 'P', rating: 5, comment: '240Hz monitors, fastest internet I\'ve seen in any café. Worth every rupee.', date: 'May 2026' },
     ],
+    games: ['Valorant', 'CS2', 'BGMI', 'Apex Legends', 'FIFA 25', 'Tekken 8', 'Fortnite'],
     featured: true,
   },
   {
@@ -182,6 +185,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Vikram S.', avatar: 'V', rating: 5, comment: 'Best value in CP. Fast WiFi, good PCs, friendly staff.', date: 'Jul 2026' },
     ],
+    games: ['BGMI', 'Free Fire', 'CS2', 'GTA V', 'Clash Royale', 'Minecraft'],
     featured: true,
   },
   {
@@ -221,6 +225,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Kiran B.', avatar: 'K', rating: 5, comment: 'RTX 4080 on every seat. The VR section is something else.', date: 'Jun 2026' },
     ],
+    games: ['Valorant', 'CS2', 'Apex Legends', 'Warzone', 'FIFA 25', 'Beat Saber'],
     featured: true,
   },
 
@@ -266,6 +271,7 @@ export const cafes: Cafe[] = [
       { author: 'Rohan M.', avatar: 'R', rating: 5, comment: 'Best setup in the city. 240Hz monitors, mechanical keyboards — feels like a pro esports arena.', date: 'Jul 2026' },
       { author: 'Priya S.', avatar: 'P', rating: 5, comment: 'The VR section is insane! Staff is super helpful.', date: 'Jun 2026' },
     ],
+    games: ['Valorant', 'CS2', 'GTA V', 'Warzone', 'FIFA 25', 'God of War', 'Beat Saber'],
     featured: true,
   },
   {
@@ -305,6 +311,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Kavya T.', avatar: 'K', rating: 5, comment: 'Love the vibe here.', date: 'Jul 2026' },
     ],
+    games: ['Valorant', 'CS2', 'BGMI', 'FIFA 25', 'Tekken 8', 'Minecraft'],
     featured: false,
   },
   {
@@ -341,6 +348,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Sahil R.', avatar: 'S', rating: 5, comment: 'Only place open at 3 AM! Lifesaver.', date: 'Jul 2026' },
     ],
+    games: ['BGMI', 'Free Fire', 'CS2', 'FIFA 25', 'Fortnite', 'GTA V'],
     featured: false,
   },
   {
@@ -380,6 +388,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Vikram N.', avatar: 'V', rating: 5, comment: 'RTX 4080 machines are butter smooth.', date: 'Jun 2026' },
     ],
+    games: ['Valorant', 'CS2', 'Apex Legends', 'Warzone', 'Beat Saber'],
     featured: false,
   },
   {
@@ -416,6 +425,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Omkar D.', avatar: 'O', rating: 4, comment: 'Super affordable and good machines.', date: 'Jul 2026' },
     ],
+    games: ['FIFA 25', 'Tekken 8', 'CS2', 'BGMI', 'Minecraft'],
     featured: false,
   },
   {
@@ -452,6 +462,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Karthik S.', avatar: 'K', rating: 5, comment: 'Tournament vibe is real. Cash prizes every month!', date: 'Jun 2026' },
     ],
+    games: ['Valorant', 'CS2', 'FIFA 25', 'Beat Saber', 'God of War', 'Apex Legends'],
     featured: false,
   },
   {
@@ -488,6 +499,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Saikat G.', avatar: 'S', rating: 4, comment: 'Good value for Salt Lake.', date: 'Jun 2026' },
     ],
+    games: ['BGMI', 'Free Fire', 'CS2', 'Minecraft', 'Clash Royale'],
     featured: false,
   },
   {
@@ -524,6 +536,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Harshit M.', avatar: 'H', rating: 5, comment: 'Best gaming café in Jaipur!', date: 'Jul 2026' },
     ],
+    games: ['Valorant', 'CS2', 'FIFA 25', 'Tekken 8', 'GTA V'],
     featured: false,
   },
   {
@@ -560,6 +573,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Dhruv S.', avatar: 'D', rating: 4, comment: 'Finally a proper gaming café in Ahmedabad!', date: 'Jun 2026' },
     ],
+    games: ['CS2', 'FIFA 25', 'BGMI', 'Free Fire'],
     featured: false,
   },
   {
@@ -595,6 +609,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Tejas R.', avatar: 'T', rating: 5, comment: 'Best monitors in Pune. Clean and well-maintained.', date: 'May 2026' },
     ],
+    games: ['Valorant', 'CS2', 'Apex Legends', 'Beat Saber', 'Warzone'],
     featured: false,
   },
   {
@@ -630,6 +645,7 @@ export const cafes: Cafe[] = [
     reviews: [
       { author: 'Arun M.', avatar: 'A', rating: 4, comment: 'Best bang for buck in T. Nagar.', date: 'Jul 2026' },
     ],
+    games: ['BGMI', 'Free Fire', 'CS2', 'Minecraft'],
     featured: false,
   },
 ];
