@@ -75,7 +75,7 @@ export default function CafeDetail() {
 
       <div className="mx-auto max-w-5xl px-5 pb-24">
         {/* ── Info header ───────────────────────────────────────── */}
-        <div className="-mt-16 mb-10 flex flex-wrap items-end justify-between gap-6">
+        <div className="relative z-10 -mt-16 mb-10 flex flex-wrap items-end justify-between gap-6">
           <div className="flex-1">
             {/* Categories */}
             <div className="mb-3 flex flex-wrap gap-2">
