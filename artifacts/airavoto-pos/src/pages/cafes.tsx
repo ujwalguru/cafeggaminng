@@ -88,7 +88,7 @@ export default function CafesPage() {
     <main className="min-h-screen bg-background text-foreground">
 
       {/* ── Search header ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-40 border-b border-border/60 bg-[oklch(0.11_0_0/0.95)] pt-20 backdrop-blur-xl">
+      <div className="sticky top-0 z-40 border-b border-border/60 bg-[oklch(0.11_0_0/0.95)] backdrop-blur-xl">
         <div className="mx-auto max-w-5xl px-5 py-4">
           <SearchBar
             variant="compact"
