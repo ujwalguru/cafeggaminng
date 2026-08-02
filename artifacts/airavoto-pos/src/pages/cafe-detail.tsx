@@ -1,0 +1,324 @@
+import { useParams } from 'wouter';
+import { Link } from 'wouter';
+import {
+  MapPin, Star, Users, Clock, Phone, ArrowLeft, CheckCircle2, Wifi,
+  Wind, UtensilsCrossed, Headphones, Zap, Trophy, Shield, Monitor,
+  ChevronRight, ExternalLink, MessageCircle
+} from 'lucide-react';
+import { getCafeBySlug } from '@/lib/cafes';
+import { CafeCard } from '@/components/site/CafeCard';
+import { cafes } from '@/lib/cafes';
+import { Navbar } from '@/components/site/Navbar';
+import { Footer } from '@/components/site/Footer';
+import { useDocumentMeta } from '@/hooks/use-document-meta';
+import NotFound from '@/pages/not-found';
+
+const amenityIconMap: Record<string, React.ElementType> = {
+  'High-Speed WiFi': Wifi,
+  'AC': Wind,
+  'Food Menu': UtensilsCrossed,
+  'Snack Bar': UtensilsCrossed,
+  'Cold Drinks': UtensilsCrossed,
+  'Premium Headsets': Headphones,
+  'Private Rooms': Shield,
+  'Tournaments': Trophy,
+  'Live Streaming Setup': Monitor,
+  '24/7 Open': Clock,
+  'Webcam': Monitor,
+  'Parking': CheckCircle2,
+};
+
+function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }) {
+  const s = size === 'lg' ? 'size-5' : 'size-3.5';
+  return (
+    <span className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          className={`${s} ${i <= Math.round(rating) ? 'fill-[oklch(0.80_0.14_60)] text-[oklch(0.80_0.14_60)]' : 'fill-muted text-muted'}`}
+        />
+      ))}
+    </span>
+  );
+}
+
+export default function CafeDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const cafe = getCafeBySlug(slug);
+
+  useDocumentMeta({
+    title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
+    description: cafe?.tagline ?? '',
+    image: cafe?.image,
+  });
+
+  if (!cafe) return <NotFound />;
+
+  const related = cafes.filter((c) => c.id !== cafe.id && (c.city === cafe.city || c.categories.some((cat) => cafe.categories.includes(cat)))).slice(0, 4);
+
+  return (
+    <main className="min-h-screen bg-background text-foreground">
+      <Navbar />
+
+      {/* ── Hero image banner ─────────────────────────────────────── */}
+      <div className="relative h-72 w-full overflow-hidden sm:h-96">
+        <img src={cafe.image} alt={cafe.name} className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.3)] via-transparent to-[oklch(0.14_0_0/0.90)]" />
+        {/* Back link */}
+        <Link
+          href="/cafes"
+          className="absolute left-5 top-24 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+        >
+          <ArrowLeft className="size-4" /> All Cafes
+        </Link>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-5 pb-24">
+        {/* ── Info header ───────────────────────────────────────── */}
+        <div className="-mt-16 mb-10 flex flex-wrap items-end justify-between gap-6">
+          <div className="flex-1">
+            {/* Categories */}
+            <div className="mb-3 flex flex-wrap gap-2">
+              {cafe.categories.map((cat) => (
+                <span key={cat} className="rounded-full border border-border/60 bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">
+                  {cat} Gaming
+                </span>
+              ))}
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{cafe.name}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{cafe.tagline}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="size-4" />
+                {cafe.address}
+              </span>
+            </div>
+          </div>
+
+          {/* Rating + open pill */}
+          <div className="flex flex-col items-end gap-3">
+            <span
+              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold ${
+                cafe.isOpen
+                  ? 'bg-[oklch(0.20_0.06_150/0.8)] text-[oklch(0.78_0.18_150)]'
+                  : 'bg-[oklch(0.20_0.06_25/0.8)] text-[oklch(0.72_0.18_25)]'
+              }`}
+            >
+              <span className={`size-2 rounded-full ${cafe.isOpen ? 'bg-[oklch(0.72_0.18_150)]' : 'bg-[oklch(0.60_0.18_25)]'}`} />
+              {cafe.isOpen ? `Open · Until ${cafe.openUntil}` : cafe.openUntil}
+            </span>
+            <div className="flex items-center gap-2">
+              <StarRow rating={cafe.rating} size="lg" />
+              <span className="text-xl font-bold">{cafe.rating}</span>
+              <span className="text-sm text-muted-foreground">({cafe.reviewCount} reviews)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Main layout: content + sidebar ────────────────────── */}
+        <div className="flex flex-col gap-8 lg:flex-row">
+          {/* Left content */}
+          <div className="min-w-0 flex-1 space-y-10">
+
+            {/* About */}
+            <section>
+              <h2 className="mb-3 text-lg font-bold">About {cafe.name}</h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">{cafe.about}</p>
+            </section>
+
+            {/* Amenities */}
+            <section>
+              <h2 className="mb-4 text-lg font-bold">Amenities</h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {cafe.amenities.map((amenity) => {
+                  const Icon = amenityIconMap[amenity] ?? CheckCircle2;
+                  return (
+                    <div key={amenity} className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.4)] text-[oklch(0.78_0.12_265)]">
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="text-xs font-medium text-foreground">{amenity}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Gallery */}
+            {cafe.gallery.length > 1 && (
+              <section>
+                <h2 className="mb-4 text-lg font-bold">Gallery</h2>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {cafe.gallery.map((src, i) => (
+                    <div key={i} className="aspect-square overflow-hidden rounded-xl border border-border/60">
+                      <img src={src} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Pricing */}
+            <section>
+              <h2 className="mb-4 text-lg font-bold">Pricing Plans</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {cafe.plans.map((plan) => (
+                  <div
+                    key={plan.name}
+                    className={`relative flex items-center justify-between rounded-2xl border px-5 py-4 transition-colors ${
+                      plan.highlight
+                        ? 'border-[oklch(0.45_0.08_265/0.7)] bg-[oklch(0.20_0.06_265/0.4)]'
+                        : 'border-border/60 bg-card'
+                    }`}
+                  >
+                    {plan.highlight && (
+                      <span className="absolute -top-2.5 left-4 rounded-full bg-[oklch(0.55_0.12_265)] px-3 py-0.5 text-[10px] font-bold text-white">
+                        Best Value
+                      </span>
+                    )}
+                    <div>
+                      <div className="text-sm font-bold text-foreground">{plan.name}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">{plan.duration}</div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-extrabold text-foreground">₹{plan.price}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Hours */}
+            <section>
+              <h2 className="mb-4 text-lg font-bold">Opening Hours</h2>
+              <div className="overflow-hidden rounded-2xl border border-border/60">
+                {cafe.hours.map(({ day, time }, i) => (
+                  <div
+                    key={day}
+                    className={`flex items-center justify-between px-5 py-3.5 text-sm ${i !== 0 ? 'border-t border-border/40' : ''}`}
+                  >
+                    <span className="font-medium text-foreground">{day}</span>
+                    <span className="text-muted-foreground">{time}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Reviews */}
+            <section>
+              <h2 className="mb-4 text-lg font-bold">Reviews</h2>
+              <div className="space-y-4">
+                {cafe.reviews.map((rev) => (
+                  <div key={rev.author} className="rounded-2xl border border-border/60 bg-card p-5">
+                    <div className="flex items-start gap-3">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[oklch(0.28_0.06_265)] text-sm font-bold text-[oklch(0.82_0.14_265)]">
+                        {rev.avatar}
+                      </span>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-sm font-semibold">{rev.author}</span>
+                          <span className="text-xs text-muted-foreground">{rev.date}</span>
+                        </div>
+                        <StarRow rating={rev.rating} />
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{rev.comment}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* Right sidebar */}
+          <aside className="w-full shrink-0 space-y-5 lg:w-72">
+            {/* Seat availability */}
+            <div className="sticky top-24 space-y-5">
+              <div className="rounded-2xl border border-border/60 bg-card p-5">
+                <h3 className="mb-4 text-sm font-bold">Seats Available</h3>
+                <div className="mb-4 flex items-end gap-2">
+                  <span className="text-4xl font-extrabold text-foreground">{cafe.availableSeats}</span>
+                  <span className="mb-1 text-sm text-muted-foreground">/ {cafe.totalSeats} total</span>
+                </div>
+                <div className="mb-4 h-2 overflow-hidden rounded-full bg-surface">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(cafe.availableSeats / cafe.totalSeats) * 100}%`,
+                      background: cafe.availableSeats > 5 ? 'oklch(0.72 0.18 150)' : cafe.availableSeats > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)',
+                    }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Users className="size-3.5" />
+                  {cafe.availableSeats > 0 ? (
+                    <span className="text-[oklch(0.72_0.14_150)]">{cafe.availableSeats} seats free right now</span>
+                  ) : (
+                    <span className="text-[oklch(0.60_0.14_25)]">Currently full — check back soon</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Starting from */}
+              <div className="rounded-2xl border border-border/60 bg-card p-5">
+                <p className="text-xs text-muted-foreground">Starting from</p>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-3xl font-extrabold text-foreground">₹{cafe.pricePerHour}</span>
+                  <span className="text-sm text-muted-foreground">/ hour</span>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <a
+                    href={`tel:${cafe.phone}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+                  >
+                    <Phone className="size-4" /> Call to Book
+                  </a>
+                  <a
+                    href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <MessageCircle className="size-4" /> WhatsApp
+                  </a>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="rounded-2xl border border-border/60 bg-card p-5">
+                <h3 className="mb-3 text-sm font-bold">Location</h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">{cafe.address}</p>
+                <a
+                  href={cafe.maps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.72_0.12_265)] transition-opacity hover:opacity-80"
+                >
+                  Open in Google Maps <ExternalLink className="size-3" />
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* ── Related cafes ──────────────────────────────────────── */}
+        {related.length > 0 && (
+          <section className="mt-16">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold">More Cafes You May Like</h2>
+              <Link href="/cafes" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+                View all <ChevronRight className="size-4" />
+              </Link>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {related.map((c) => (
+                <CafeCard key={c.id} cafe={c} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+
+      <Footer />
+    </main>
+  );
+}

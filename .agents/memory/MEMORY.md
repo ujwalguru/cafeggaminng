@@ -1,0 +1,2 @@
+- [TanStack-Start → Vite/wouter port](tanstack-to-vite-port.md) — conversion pattern for porting TanStack Start + Router apps to Vite + wouter.
+- [Airavoto Cafe project](airavoto-cafe-project.md) — this project is now a gaming-cafe discovery platform (not a POS marketing site); key files, data shape, routes.
