@@ -26,9 +26,12 @@ export function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-full border border-border bg-foreground text-sm font-black text-background">
-            A
-          </span>
+          <img
+            src="/logo.png"
+            alt="Airavoto Cafe"
+            className="size-8 object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
           <span className="text-[15px] tracking-tight">
             <span className="font-normal text-foreground">Airavoto</span>
             <span className="font-bold text-foreground"> Cafe</span>
