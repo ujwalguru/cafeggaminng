@@ -1,6 +1,6 @@
 {
   "buildCommand": "pnpm --filter @workspace/airavoto-pos run build",
-  "outputDirectory": "artifacts/airavoto-pos/dist/public",
+  "outputDirectory": "artifacts/airavoto-pos/dist",
   "installCommand": "pnpm install",
   "framework": null,
   "rewrites": [

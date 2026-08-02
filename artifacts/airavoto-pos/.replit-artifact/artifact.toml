@@ -17,7 +17,7 @@ run = "pnpm --filter @workspace/airavoto-pos run dev"
 [services.production]
 build = [ "pnpm", "--filter", "@workspace/airavoto-pos", "run", "build" ]
 serve = "static"
-publicDir = "artifacts/airavoto-pos/dist/public"
+publicDir = "artifacts/airavoto-pos/dist"
 
 [[services.production.rewrites]]
 from = "/*"
