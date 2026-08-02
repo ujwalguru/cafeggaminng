@@ -9,6 +9,7 @@ import CafeDetail from '@/pages/cafe-detail';
 import ListCafe from '@/pages/list-cafe';
 import Blog from '@/pages/blog';
 import BlogPost from '@/pages/blog-post';
+import Signup from '@/pages/signup';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/list-cafe" component={ListCafe} />
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/signup" component={Signup} />
       <Route component={NotFound} />
     </Switch>
   );

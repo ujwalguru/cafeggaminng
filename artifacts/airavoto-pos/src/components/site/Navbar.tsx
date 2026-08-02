@@ -4,7 +4,6 @@ import { Search, Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Explore', to: '/cafes' },
-  { label: 'Cities', to: '/cafes' },
   { label: 'Blog', to: '/blog' },
 ];
 
@@ -22,8 +21,8 @@ export function Navbar() {
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-border/50 bg-[oklch(0.10_0_0/0.95)] backdrop-blur-xl">
-      <div className="mx-auto flex h-[62px] max-w-6xl items-center gap-4 px-5">
+    <header className="fixed inset-x-0 top-4 z-50 px-4">
+      <div className="mx-auto flex h-[58px] max-w-5xl items-center gap-4 rounded-2xl border border-border/40 bg-[oklch(0.10_0_0/0.85)] px-4 shadow-[0_8px_32px_oklch(0_0_0/0.4)] backdrop-blur-2xl">
 
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
@@ -64,6 +63,12 @@ export function Navbar() {
             </Link>
           ))}
           <Link
+            href="/signup"
+            className="ml-2 rounded-full border border-border/60 px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface-2"
+          >
+            Sign Up
+          </Link>
+          <Link
             href="/cafes"
             className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
           >
@@ -83,7 +88,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-border/50 bg-[oklch(0.10_0_0/0.98)] px-5 pb-5 pt-3 md:hidden">
+        <div className="mx-4 mt-2 rounded-2xl border border-border/40 bg-[oklch(0.10_0_0/0.95)] px-5 pb-5 pt-3 shadow-[0_8px_32px_oklch(0_0_0/0.4)] backdrop-blur-2xl md:hidden">
           {/* Mobile search */}
           <form onSubmit={handleSearch} className="mb-4">
             <div className="flex items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-2.5">
@@ -109,8 +114,14 @@ export function Navbar() {
             ))}
           </ul>
           <Link
+            href="/signup"
+            className="mt-3 flex w-full items-center justify-center rounded-full border border-border/60 py-3 text-sm font-semibold text-foreground"
+          >
+            Sign Up
+          </Link>
+          <Link
             href="/cafes"
-            className="mt-3 flex w-full items-center justify-center rounded-full bg-foreground py-3 text-sm font-semibold text-background"
+            className="mt-2 flex w-full items-center justify-center rounded-full bg-foreground py-3 text-sm font-semibold text-background"
           >
             Find a Cafe
           </Link>
