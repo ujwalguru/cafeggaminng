@@ -3,7 +3,6 @@ import { useLocation } from 'wouter';
 import { SlidersHorizontal, X, ChevronDown, Star } from 'lucide-react';
 import { SearchBar } from '@/components/site/SearchBar';
 import { CafeCard } from '@/components/site/CafeCard';
-import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { cafes, CITIES, CATEGORIES, type GameCategory } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
@@ -87,7 +86,6 @@ export default function CafesPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Navbar />
 
       {/* ── Search header ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-40 border-b border-border/60 bg-[oklch(0.11_0_0/0.95)] pt-20 backdrop-blur-xl">
