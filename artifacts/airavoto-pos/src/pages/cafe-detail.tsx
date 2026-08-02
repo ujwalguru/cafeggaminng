@@ -366,9 +366,21 @@ export default function CafeDetail() {
               {/* Location */}
               <div className="rounded-2xl border border-border/60 bg-card p-5">
                 <h3 className="mb-3 text-sm font-bold">Location</h3>
+                {/* Map iframe */}
+                <div className="mb-3 overflow-hidden rounded-xl border border-border/40">
+                  <iframe
+                    title="Map"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(cafe.address)}&output=embed&z=15`}
+                    width="100%"
+                    height="160"
+                    style={{ border: 0, display: 'block' }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
                 <p className="text-xs leading-relaxed text-muted-foreground">{cafe.address}</p>
                 <a
-                  href={cafe.maps}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cafe.address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.72_0.12_265)] transition-opacity hover:opacity-80"
