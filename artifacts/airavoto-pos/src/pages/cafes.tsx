@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
-import { SlidersHorizontal, X, ChevronDown, Star } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, Star, ArrowLeft } from 'lucide-react';
+import { Link } from 'wouter';
 import { SearchBar } from '@/components/site/SearchBar';
 import { CafeCard } from '@/components/site/CafeCard';
 import { Footer } from '@/components/site/Footer';
@@ -89,14 +90,22 @@ export default function CafesPage() {
 
       {/* ── Search header ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-40 border-b border-border/60 bg-[oklch(0.11_0_0/0.95)] backdrop-blur-xl">
-        <div className="mx-auto max-w-5xl px-5 py-4">
-          <SearchBar
-            variant="compact"
-            defaultQuery={query}
-            defaultCity={city}
-            defaultCategory={category}
-            onSearch={(q, c, cat) => { setQuery(q); setCity(c); setCategory(cat); }}
-          />
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-4">
+          <Link
+            href="/"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <div className="flex-1">
+            <SearchBar
+              variant="compact"
+              defaultQuery={query}
+              defaultCity={city}
+              defaultCategory={category}
+              onSearch={(q, c, cat) => { setQuery(q); setCity(c); setCategory(cat); }}
+            />
+          </div>
         </div>
       </div>
 
