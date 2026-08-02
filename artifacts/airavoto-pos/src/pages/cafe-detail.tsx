@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams } from 'wouter';
 import { Link } from 'wouter';
 import {
@@ -45,6 +46,10 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }
 export default function CafeDetail() {
   const { slug } = useParams<{ slug: string }>();
   const cafe = getCafeBySlug(slug);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
