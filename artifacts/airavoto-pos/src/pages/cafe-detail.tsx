@@ -175,17 +175,22 @@ export default function CafeDetail() {
 
   return (
     <main className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
-      <Navbar />
+      {/* Navbar — hidden on mobile */}
+      <div className="hidden lg:block">
+        <Navbar />
+      </div>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
         <img src={cafe.image} alt={cafe.name} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
+        {/* Back button — circle on mobile, pill on desktop */}
         <Link
           href="/cafes"
-          className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70 sm:left-5 sm:top-6 sm:px-4 sm:py-2 sm:text-sm"
+          className="absolute left-4 top-4 flex size-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 lg:size-auto lg:gap-1.5 lg:rounded-full lg:border lg:px-4 lg:py-2 lg:text-sm lg:font-medium"
         >
-          <ArrowLeft className="size-3.5 sm:size-4" /> All Cafes
+          <ArrowLeft className="size-4" />
+          <span className="hidden lg:inline">All Cafes</span>
         </Link>
       </div>
 
