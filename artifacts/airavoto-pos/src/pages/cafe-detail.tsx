@@ -14,14 +14,12 @@ import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
 
-// ── Station helpers ──────────────────────────────────────────────────────────
+// ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = 'PC' | 'PS5';
 interface Station { id: number; label: string; available: boolean; occupiedUntil: string | null }
 
 function buildStations(type: StationType, total: number, avail: number, seed: number): Station[] {
-  // deterministically mark which stations are free vs occupied
   const indices = Array.from({ length: total }, (_, i) => i);
-  // shuffle using seed
   for (let i = indices.length - 1; i > 0; i--) {
     const j = (seed * (i + 7) * 31 + 17) % (i + 1);
     [indices[i], indices[j]] = [indices[j], indices[i]];
@@ -40,6 +38,7 @@ const amenityIconMap: Record<string, React.ElementType> = {
   'High-Speed WiFi': Wifi,
   'AC': Wind,
   'Food Menu': UtensilsCrossed,
+  'Full Food Menu': UtensilsCrossed,
   'Snack Bar': UtensilsCrossed,
   'Cold Drinks': UtensilsCrossed,
   'Premium Headsets': Headphones,
@@ -69,24 +68,21 @@ export default function CafeDetail() {
   const { slug } = useParams<{ slug: string }>();
   const cafe = getCafeBySlug(slug);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
+  useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
   const [stationModal, setStationModal] = useState<StationType | null>(null);
 
-  // derive station counts from cafe data
-  const hasConsole = cafe.categories.includes('Console');
-  const pcTotal = hasConsole ? Math.round(cafe.totalSeats * 0.65) : cafe.totalSeats;
-  const ps5Total = hasConsole ? cafe.totalSeats - pcTotal : 0;
-  const pcAvail = hasConsole ? Math.round(cafe.availableSeats * 0.65) : cafe.availableSeats;
-  const ps5Avail = hasConsole ? Math.max(0, cafe.availableSeats - pcAvail) : 0;
-  const seed = parseInt(cafe.id, 10) || 1;
-  const pcStations = buildStations('PC', pcTotal, pcAvail, seed);
+  const hasConsole = cafe?.categories.includes('Console') ?? false;
+  const pcTotal    = hasConsole ? Math.round((cafe?.totalSeats ?? 0) * 0.65) : (cafe?.totalSeats ?? 0);
+  const ps5Total   = hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0;
+  const pcAvail    = hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0);
+  const ps5Avail   = hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0;
+  const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
+  const pcStations  = buildStations('PC',  pcTotal,  pcAvail,  seed);
   const ps5Stations = buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const modalStations = stationModal === 'PC' ? pcStations : ps5Stations;
-  const modalAvail = stationModal === 'PC' ? pcAvail : ps5Avail;
-  const modalTotal = stationModal === 'PC' ? pcTotal : ps5Total;
+  const modalAvail    = stationModal === 'PC' ? pcAvail    : ps5Avail;
+  const modalTotal    = stationModal === 'PC' ? pcTotal    : ps5Total;
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -96,86 +92,168 @@ export default function CafeDetail() {
 
   if (!cafe) return <NotFound />;
 
-  const related = cafes.filter((c) => c.id !== cafe.id && (c.city === cafe.city || c.categories.some((cat) => cafe.categories.includes(cat)))).slice(0, 4);
+  const related = cafes
+    .filter((c) => c.id !== cafe.id && (c.city === cafe.city || c.categories.some((cat) => cafe.categories.includes(cat))))
+    .slice(0, 4);
+
+  // ── Reusable sub-components ────────────────────────────────────────────────
+  const StationBoxes = () => (
+    <div className={`grid gap-3 ${hasConsole ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <button
+        onClick={() => setStationModal('PC')}
+        className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+            <Monitor className="size-4" />
+          </span>
+          <span className={`text-[10px] font-semibold uppercase tracking-wide ${pcAvail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+            {pcAvail > 0 ? 'Available' : 'Full'}
+          </span>
+        </div>
+        <p className="text-xs font-semibold text-muted-foreground">PC</p>
+        <p className="mt-0.5 text-2xl font-extrabold text-foreground">
+          {pcAvail}<span className="text-sm font-normal text-muted-foreground">/{pcTotal}</span>
+        </p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+          <div className="h-full rounded-full transition-all" style={{ width: `${(pcAvail / pcTotal) * 100}%`, background: pcAvail > 3 ? 'oklch(0.72 0.18 150)' : pcAvail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
+        </div>
+        <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+      </button>
+
+      {hasConsole && (
+        <button
+          onClick={() => setStationModal('PS5')}
+          className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+              <Gamepad2 className="size-4" />
+            </span>
+            <span className={`text-[10px] font-semibold uppercase tracking-wide ${ps5Avail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+              {ps5Avail > 0 ? 'Available' : 'Full'}
+            </span>
+          </div>
+          <p className="text-xs font-semibold text-muted-foreground">PS5</p>
+          <p className="mt-0.5 text-2xl font-extrabold text-foreground">
+            {ps5Avail}<span className="text-sm font-normal text-muted-foreground">/{ps5Total}</span>
+          </p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+            <div className="h-full rounded-full transition-all" style={{ width: ps5Total > 0 ? `${(ps5Avail / ps5Total) * 100}%` : '0%', background: ps5Avail > 2 ? 'oklch(0.72 0.18 150)' : ps5Avail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
+          </div>
+          <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+        </button>
+      )}
+    </div>
+  );
+
+  const LocationCard = () => (
+    <div className="rounded-2xl border border-border/60 bg-card p-5">
+      <h3 className="mb-3 text-sm font-bold">Location</h3>
+      <div className="mb-3 overflow-hidden rounded-xl border border-border/40">
+        <iframe
+          title="Map"
+          src={`https://maps.google.com/maps?q=${encodeURIComponent(cafe.address)}&output=embed&z=15`}
+          width="100%"
+          height="160"
+          style={{ border: 0, display: 'block' }}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">{cafe.address}</p>
+      <a
+        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cafe.address)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.72_0.12_265)] transition-opacity hover:opacity-80"
+      >
+        Open in Google Maps <ExternalLink className="size-3" />
+      </a>
+    </div>
+  );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
       <Navbar />
 
-      {/* ── Hero image banner ─────────────────────────────────────── */}
-      <div className="relative h-72 w-full overflow-hidden sm:h-96">
+      {/* ── Hero ─────────────────────────────────────────────────── */}
+      <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
         <img src={cafe.image} alt={cafe.name} className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.3)] via-transparent to-[oklch(0.14_0_0/0.90)]" />
-        {/* Back link */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         <Link
           href="/cafes"
-          className="absolute left-5 top-24 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+          className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70 sm:left-5 sm:top-6 sm:px-4 sm:py-2 sm:text-sm"
         >
-          <ArrowLeft className="size-4" /> All Cafes
+          <ArrowLeft className="size-3.5 sm:size-4" /> All Cafes
         </Link>
       </div>
 
-      <div className="mx-auto max-w-5xl px-5 pb-24">
-        {/* ── Info header ───────────────────────────────────────── */}
-        <div className="relative z-10 -mt-16 mb-10 flex flex-wrap items-end justify-between gap-6">
-          <div className="flex-1">
-            {/* Categories */}
-            <div className="mb-3 flex flex-wrap gap-2">
-              {cafe.categories.map((cat) => (
-                <span key={cat} className="rounded-full border border-border/60 bg-surface px-3 py-1 text-xs font-medium text-muted-foreground">
-                  {cat} Gaming
-                </span>
-              ))}
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{cafe.name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{cafe.tagline}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <MapPin className="size-4" />
-                {cafe.address}
+      <div className="mx-auto max-w-5xl px-4 sm:px-5">
+        {/* ── Info header ──────────────────────────────────────── */}
+        <div className="relative z-10 -mt-14 mb-8 sm:-mt-16 sm:mb-10">
+          {/* Categories */}
+          <div className="mb-2 flex flex-wrap gap-1.5 sm:mb-3 sm:gap-2">
+            {cafe.categories.map((cat) => (
+              <span key={cat} className="rounded-full border border-border/60 bg-surface px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground sm:px-3 sm:py-1 sm:text-xs">
+                {cat} Gaming
               </span>
-            </div>
+            ))}
           </div>
 
-          {/* Rating + open pill */}
-          <div className="flex flex-col items-end gap-3">
-            <span
-              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold ${
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">{cafe.name}</h1>
+              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{cafe.tagline}</p>
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground sm:mt-3 sm:text-sm">
+                <MapPin className="size-3.5 shrink-0" />
+                <span className="truncate">{cafe.address}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-2">
+              <span className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm ${
                 cafe.isOpen
                   ? 'bg-[oklch(0.20_0.06_150/0.8)] text-[oklch(0.78_0.18_150)]'
                   : 'bg-[oklch(0.20_0.06_25/0.8)] text-[oklch(0.72_0.18_25)]'
-              }`}
-            >
-              <span className={`size-2 rounded-full ${cafe.isOpen ? 'bg-[oklch(0.72_0.18_150)]' : 'bg-[oklch(0.60_0.18_25)]'}`} />
-              {cafe.isOpen ? `Open · Until ${cafe.openUntil}` : cafe.openUntil}
-            </span>
-            <div className="flex items-center gap-2">
-              <StarRow rating={cafe.rating} size="lg" />
-              <span className="text-xl font-bold">{cafe.rating}</span>
-              <span className="text-sm text-muted-foreground">({cafe.reviewCount} reviews)</span>
+              }`}>
+                <span className={`size-1.5 rounded-full ${cafe.isOpen ? 'bg-[oklch(0.72_0.18_150)]' : 'bg-[oklch(0.60_0.18_25)]'}`} />
+                {cafe.isOpen ? `Open · ${cafe.openUntil}` : cafe.openUntil}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <StarRow rating={cafe.rating} size="lg" />
+                <span className="text-base font-bold sm:text-xl">{cafe.rating}</span>
+                <span className="text-xs text-muted-foreground sm:text-sm">({cafe.reviewCount})</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Main layout: content + sidebar ────────────────────── */}
+        {/* ── Main layout ───────────────────────────────────────── */}
         <div className="flex flex-col gap-8 lg:flex-row">
-          {/* Left content */}
-          <div className="min-w-0 flex-1 space-y-10">
+          {/* ── Left content ────────────────────────────────────── */}
+          <div className="min-w-0 flex-1 space-y-8 sm:space-y-10">
 
             {/* About */}
             <section>
-              <h2 className="mb-3 text-lg font-bold">About {cafe.name}</h2>
+              <h2 className="mb-2 text-base font-bold sm:mb-3 sm:text-lg">About {cafe.name}</h2>
               <p className="text-sm leading-relaxed text-muted-foreground">{cafe.about}</p>
+            </section>
+
+            {/* Station boxes — mobile only */}
+            <section className="lg:hidden">
+              <h2 className="mb-3 text-base font-bold">Station Availability</h2>
+              <StationBoxes />
             </section>
 
             {/* Games */}
             <section>
-              <h2 className="mb-4 text-lg font-bold">Games Available</h2>
+              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Games Available</h2>
               <div className="flex flex-wrap gap-2">
                 {cafe.games.map((game) => (
                   <span
                     key={game}
-                    className="flex items-center gap-1.5 rounded-full border border-[oklch(0.40_0.12_265/0.5)] bg-[oklch(0.22_0.06_265/0.35)] px-3.5 py-1.5 text-xs font-medium text-[oklch(0.85_0.10_265)]"
+                    className="flex items-center gap-1.5 rounded-full border border-[oklch(0.40_0.12_265/0.5)] bg-[oklch(0.22_0.06_265/0.35)] px-3 py-1.5 text-xs font-medium text-[oklch(0.85_0.10_265)]"
                   >
                     <Gamepad2 className="size-3 shrink-0 opacity-70" />
                     {game}
@@ -186,16 +264,16 @@ export default function CafeDetail() {
 
             {/* Amenities */}
             <section>
-              <h2 className="mb-4 text-lg font-bold">Amenities</h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Amenities</h2>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
                 {cafe.amenities.map((amenity) => {
                   const Icon = amenityIconMap[amenity] ?? CheckCircle2;
                   return (
-                    <div key={amenity} className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3">
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.4)] text-[oklch(0.78_0.12_265)]">
-                        <Icon className="size-4" />
+                    <div key={amenity} className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.4)] text-[oklch(0.78_0.12_265)] sm:size-8">
+                        <Icon className="size-3.5 sm:size-4" />
                       </span>
-                      <span className="text-xs font-medium text-foreground">{amenity}</span>
+                      <span className="text-[11px] font-medium text-foreground sm:text-xs">{amenity}</span>
                     </div>
                   );
                 })}
@@ -205,8 +283,8 @@ export default function CafeDetail() {
             {/* Gallery */}
             {cafe.gallery.length > 1 && (
               <section>
-                <h2 className="mb-4 text-lg font-bold">Gallery</h2>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Gallery</h2>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                   {cafe.gallery.map((src, i) => (
                     <div key={i} className="aspect-square overflow-hidden rounded-xl border border-border/60">
                       <img src={src} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
@@ -218,12 +296,12 @@ export default function CafeDetail() {
 
             {/* Pricing */}
             <section>
-              <h2 className="mb-4 text-lg font-bold">Pricing Plans</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Pricing Plans</h2>
+              <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
                 {cafe.plans.map((plan) => (
                   <div
                     key={plan.name}
-                    className={`relative flex items-center justify-between rounded-2xl border px-5 py-4 transition-colors ${
+                    className={`relative flex items-center justify-between rounded-2xl border px-4 py-3.5 sm:px-5 sm:py-4 ${
                       plan.highlight
                         ? 'border-[oklch(0.45_0.08_265/0.7)] bg-[oklch(0.20_0.06_265/0.4)]'
                         : 'border-border/60 bg-card'
@@ -238,9 +316,7 @@ export default function CafeDetail() {
                       <div className="text-sm font-bold text-foreground">{plan.name}</div>
                       <div className="mt-0.5 text-xs text-muted-foreground">{plan.duration}</div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-xl font-extrabold text-foreground">₹{plan.price}</span>
-                    </div>
+                    <span className="text-xl font-extrabold text-foreground">₹{plan.price}</span>
                   </div>
                 ))}
               </div>
@@ -248,12 +324,12 @@ export default function CafeDetail() {
 
             {/* Hours */}
             <section>
-              <h2 className="mb-4 text-lg font-bold">Opening Hours</h2>
+              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Opening Hours</h2>
               <div className="overflow-hidden rounded-2xl border border-border/60">
                 {cafe.hours.map(({ day, time }, i) => (
                   <div
                     key={day}
-                    className={`flex items-center justify-between px-5 py-3.5 text-sm ${i !== 0 ? 'border-t border-border/40' : ''}`}
+                    className={`flex items-center justify-between px-4 py-3 text-sm sm:px-5 sm:py-3.5 ${i !== 0 ? 'border-t border-border/40' : ''}`}
                   >
                     <span className="font-medium text-foreground">{day}</span>
                     <span className="text-muted-foreground">{time}</span>
@@ -264,81 +340,41 @@ export default function CafeDetail() {
 
             {/* Reviews */}
             <section>
-              <h2 className="mb-4 text-lg font-bold">Reviews</h2>
-              <div className="space-y-4">
+              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Reviews</h2>
+              <div className="space-y-3 sm:space-y-4">
                 {cafe.reviews.map((rev) => (
-                  <div key={rev.author} className="rounded-2xl border border-border/60 bg-card p-5">
+                  <div key={rev.author} className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
                     <div className="flex items-start gap-3">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[oklch(0.28_0.06_265)] text-sm font-bold text-[oklch(0.82_0.14_265)]">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[oklch(0.28_0.06_265)] text-sm font-bold text-[oklch(0.82_0.14_265)] sm:size-9">
                         {rev.avatar}
                       </span>
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
                           <span className="text-sm font-semibold">{rev.author}</span>
                           <span className="text-xs text-muted-foreground">{rev.date}</span>
                         </div>
                         <StarRow rating={rev.rating} />
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{rev.comment}</p>
+                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{rev.comment}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
+
+            {/* Location — mobile only */}
+            <section className="lg:hidden">
+              <h2 className="mb-3 text-base font-bold">Location</h2>
+              <LocationCard />
+            </section>
           </div>
 
-          {/* Right sidebar */}
-          <aside className="w-full shrink-0 space-y-5 lg:w-72">
-            {/* Seat availability */}
+          {/* ── Right sidebar — desktop only ─────────────────────── */}
+          <aside className="hidden lg:block w-72 shrink-0">
             <div className="sticky top-24 space-y-5">
-              {/* Station type boxes */}
-              <div className={`grid gap-3 ${hasConsole ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                {/* PC Box */}
-                <button
-                  onClick={() => setStationModal('PC')}
-                  className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
-                      <Monitor className="size-4" />
-                    </span>
-                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${pcAvail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
-                      {pcAvail > 0 ? 'Available' : 'Full'}
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold text-muted-foreground">PC</p>
-                  <p className="mt-0.5 text-2xl font-extrabold text-foreground">{pcAvail}<span className="text-sm font-normal text-muted-foreground">/{pcTotal}</span></p>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${(pcAvail / pcTotal) * 100}%`, background: pcAvail > 3 ? 'oklch(0.72 0.18 150)' : pcAvail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
-                  </div>
-                  <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
-                </button>
+              <StationBoxes />
 
-                {/* PS5 Box */}
-                {hasConsole && (
-                  <button
-                    onClick={() => setStationModal('PS5')}
-                    className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
-                        <Gamepad2 className="size-4" />
-                      </span>
-                      <span className={`text-[10px] font-semibold uppercase tracking-wide ${ps5Avail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
-                        {ps5Avail > 0 ? 'Available' : 'Full'}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-muted-foreground">PS5</p>
-                    <p className="mt-0.5 text-2xl font-extrabold text-foreground">{ps5Avail}<span className="text-sm font-normal text-muted-foreground">/{ps5Total}</span></p>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
-                      <div className="h-full rounded-full transition-all" style={{ width: ps5Total > 0 ? `${(ps5Avail / ps5Total) * 100}%` : '0%', background: ps5Avail > 2 ? 'oklch(0.72 0.18 150)' : ps5Avail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
-                    </div>
-                    <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
-                  </button>
-                )}
-              </div>
-
-              {/* Starting from */}
+              {/* Price + CTA */}
               <div className="rounded-2xl border border-border/60 bg-card p-5">
                 <p className="text-xs text-muted-foreground">Starting from</p>
                 <div className="mt-1 flex items-baseline gap-1">
@@ -363,45 +399,21 @@ export default function CafeDetail() {
                 </div>
               </div>
 
-              {/* Location */}
-              <div className="rounded-2xl border border-border/60 bg-card p-5">
-                <h3 className="mb-3 text-sm font-bold">Location</h3>
-                {/* Map iframe */}
-                <div className="mb-3 overflow-hidden rounded-xl border border-border/40">
-                  <iframe
-                    title="Map"
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(cafe.address)}&output=embed&z=15`}
-                    width="100%"
-                    height="160"
-                    style={{ border: 0, display: 'block' }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">{cafe.address}</p>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cafe.address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.72_0.12_265)] transition-opacity hover:opacity-80"
-                >
-                  Open in Google Maps <ExternalLink className="size-3" />
-                </a>
-              </div>
+              <LocationCard />
             </div>
           </aside>
         </div>
 
-        {/* ── Related cafes ──────────────────────────────────────── */}
+        {/* ── Related cafes ─────────────────────────────────────── */}
         {related.length > 0 && (
-          <section className="mt-16">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold">More Cafes You May Like</h2>
+          <section className="mt-12 sm:mt-16">
+            <div className="mb-5 flex items-center justify-between sm:mb-6">
+              <h2 className="text-lg font-bold sm:text-xl">More Cafes You May Like</h2>
               <Link href="/cafes" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
                 View all <ChevronRight className="size-4" />
               </Link>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 sm:gap-5 lg:grid-cols-4">
               {related.map((c) => (
                 <CafeCard key={c.id} cafe={c} />
               ))}
@@ -412,7 +424,31 @@ export default function CafeDetail() {
 
       <Footer />
 
-      {/* ── Station modal ─────────────────────────────────────────── */}
+      {/* ── Mobile sticky booking bar ─────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/60 bg-[oklch(0.11_0_0/0.97)] px-4 py-3 backdrop-blur-xl lg:hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-muted-foreground">Starting from</p>
+            <p className="text-lg font-extrabold leading-tight text-foreground">₹{cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
+          </div>
+          <a
+            href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <MessageCircle className="size-4" />
+          </a>
+          <a
+            href={`tel:${cafe.phone}`}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground"
+          >
+            <Phone className="size-4" /> Call to Book
+          </a>
+        </div>
+      </div>
+
+      {/* ── Station modal ─────────────────────────────────────── */}
       {stationModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setStationModal(null)}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -420,7 +456,6 @@ export default function CafeDetail() {
             className="relative z-10 w-full max-w-lg rounded-t-3xl border border-border/60 bg-[oklch(0.13_0.02_265)] p-6 shadow-2xl sm:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
@@ -436,29 +471,26 @@ export default function CafeDetail() {
               </button>
             </div>
 
-            {/* Legend */}
             <div className="mb-4 flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" /> Available</span>
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.55_0.16_25)]" /> Occupied</span>
             </div>
 
-            {/* Station grid */}
-            <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
+            <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
               {modalStations.map((s) => (
                 <div
                   key={s.id}
-                  className={`rounded-xl border p-3 text-center transition-colors ${
+                  className={`rounded-xl border p-3 text-center ${
                     s.available
                       ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
                       : 'border-border/40 bg-[oklch(0.15_0.02_0/0.4)]'
                   }`}
                 >
                   <p className={`text-xs font-bold ${s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
-                  {s.available ? (
-                    <p className="mt-1 text-[10px] text-[oklch(0.65_0.14_150)]">Free</p>
-                  ) : (
-                    <p className="mt-1 text-[10px] text-muted-foreground">Until {s.occupiedUntil}</p>
-                  )}
+                  {s.available
+                    ? <p className="mt-1 text-[10px] text-[oklch(0.65_0.14_150)]">Free</p>
+                    : <p className="mt-1 text-[10px] text-muted-foreground">Until {s.occupiedUntil}</p>
+                  }
                 </div>
               ))}
             </div>
