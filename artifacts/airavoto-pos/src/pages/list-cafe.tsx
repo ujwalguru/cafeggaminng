@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Gamepad2, CheckCircle2, Store, Globe, BarChart3, Users } from 'lucide-react';
+import { Gamepad2, CheckCircle2, Store, Globe, BarChart3, Users, MapPin, Search as SearchIcon, Loader2 } from 'lucide-react';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
@@ -13,14 +13,104 @@ const PERKS = [
 
 type FormState = 'idle' | 'submitting' | 'done';
 
+type LocationResult = {
+  place_id: string | number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  address?: Record<string, string>;
+};
+
+function decodeMapsSearch(value: string) {
+  const input = value.trim();
+  if (!input) return '';
+
+  try {
+    const url = new URL(input);
+    const query = url.searchParams.get('query') || url.searchParams.get('q');
+    if (query) return query;
+
+    const placeMatch = url.pathname.match(/\/maps\/(?:search|place)\/([^/]+)/i);
+    if (placeMatch) return decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+
+    const coordinateMatch = url.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if (coordinateMatch) return `${coordinateMatch[1]},${coordinateMatch[2]}`;
+  } catch {
+    // Treat non-URL input as a normal place search.
+  }
+
+  return input;
+}
+
+function getLocationPart(address: Record<string, string> | undefined, keys: string[]) {
+  if (!address) return '';
+  return keys.map((key) => address[key]).find(Boolean) || '';
+}
+
 export default function ListCafe() {
   useDocumentMeta({ title: 'List Your Gaming Cafe — Airavoto Cafe', description: 'Add your gaming cafe to Airavoto and reach thousands of gamers.' });
 
-  const [form, setForm] = useState({ name: '', city: '', area: '', phone: '', email: '', description: '' });
+  const [form, setForm] = useState({ name: '', city: '', area: '', address: '', mapsLink: '', phone: '', email: '', description: '' });
   const [state, setState] = useState<FormState>('idle');
+  const [locationResults, setLocationResults] = useState<LocationResult[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function handleLocationLookup() {
+    const input = form.mapsLink.trim();
+    if (!input) {
+      setLocationMessage('Paste a Google Maps link or type a café name and area first.');
+      return;
+    }
+
+    if (/maps\.app\.goo\.gl|goo\.gl/i.test(input)) {
+      setLocationMessage('Short Google Maps links cannot be read directly. Paste the full google.com/maps link or type the café name and area.');
+      return;
+    }
+
+    const query = decodeMapsSearch(input);
+    setLocationLoading(true);
+    setLocationMessage('Searching for the location…');
+    setLocationResults([]);
+
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`, {
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) throw new Error('Location search failed');
+      const results = (await response.json()) as LocationResult[];
+      if (results.length === 0) {
+        setLocationMessage('No location found. Try a more complete café name, area, or city.');
+        return;
+      }
+      setLocationResults(results);
+      setLocationMessage('Select the matching location to fill the address fields.');
+    } catch {
+      setLocationMessage('Location search is unavailable right now. You can still enter the address manually.');
+    } finally {
+      setLocationLoading(false);
+    }
+  }
+
+  function applyLocation(result: LocationResult) {
+    const address = result.address || {};
+    const city = getLocationPart(address, ['city', 'town', 'municipality', 'village', 'county']);
+    const area = getLocationPart(address, ['suburb', 'neighbourhood', 'city_district', 'quarter']);
+    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${result.lat},${result.lon}`)}`;
+    setForm((prev) => ({
+      ...prev,
+      city: city || prev.city,
+      area: area || prev.area,
+      address: result.display_name,
+      mapsLink,
+      name: prev.name || result.display_name.split(',')[0].trim(),
+    }));
+    setLocationResults([]);
+    setLocationMessage('Location added. Review the fields before submitting.');
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -83,10 +173,53 @@ export default function ListCafe() {
             <form onSubmit={handleSubmit} className="rounded-3xl border border-border/60 bg-card p-8">
               <h2 className="mb-6 text-xl font-bold">Submit Your Cafe</h2>
               <div className="space-y-4">
+                <div className="rounded-2xl border border-[oklch(0.45_0.08_265/0.45)] bg-[oklch(0.20_0.06_265/0.25)] p-4">
+                  <label htmlFor="mapsLink" className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-foreground">
+                    <MapPin className="size-3.5 text-[oklch(0.80_0.12_265)]" /> Google Maps link or cafe search
+                  </label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      id="mapsLink"
+                      name="mapsLink"
+                      value={form.mapsLink}
+                      onChange={handleChange}
+                      placeholder="Paste a Google Maps link or type cafe name + area"
+                      className="min-w-0 flex-1 rounded-xl border border-border/60 bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-[oklch(0.45_0.08_265)] focus:outline-none focus:ring-1 focus:ring-[oklch(0.45_0.08_265/0.4)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleLocationLookup}
+                      disabled={locationLoading}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-2 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {locationLoading ? <Loader2 className="size-4 animate-spin" /> : <SearchIcon className="size-4" />}
+                      {locationLoading ? 'Searching…' : 'Find address'}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">We use the link or search text to suggest the address, city, and area. Review the result before submitting.</p>
+                  {locationMessage && <p className="mt-2 text-xs text-[oklch(0.78_0.12_265)]">{locationMessage}</p>}
+                  {locationResults.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {locationResults.map((result) => (
+                        <button
+                          type="button"
+                          key={`${result.place_id}-${result.lat}-${result.lon}`}
+                          onClick={() => applyLocation(result)}
+                          className="flex w-full items-start gap-2 rounded-xl border border-border/60 bg-surface px-3 py-2.5 text-left transition-colors hover:border-[oklch(0.55_0.12_265)] hover:bg-surface-2"
+                        >
+                          <MapPin className="mt-0.5 size-4 shrink-0 text-[oklch(0.80_0.12_265)]" />
+                          <span className="text-xs leading-relaxed text-foreground">{result.display_name}</span>
+                        </button>
+                      ))}
+                      <p className="text-[10px] text-muted-foreground">Search results powered by OpenStreetMap contributors.</p>
+                    </div>
+                  )}
+                </div>
                 {[
                   { name: 'name', label: 'Cafe Name', placeholder: 'e.g. Neon Arena Gaming Lounge', required: true },
                   { name: 'city', label: 'City', placeholder: 'e.g. Mumbai', required: true },
                   { name: 'area', label: 'Area / Locality', placeholder: 'e.g. Andheri West', required: true },
+                  { name: 'address', label: 'Full Address', placeholder: 'Street, building, landmark, pincode', required: true },
                   { name: 'phone', label: 'Phone Number', placeholder: '+91 98200 00000', required: true },
                   { name: 'email', label: 'Email Address', placeholder: 'owner@yourcafe.com', required: true },
                 ].map(({ name, label, placeholder, required }) => (
