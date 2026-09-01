@@ -306,7 +306,7 @@ export default function CafeDetail() {
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
-        <img src={cafe.image} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover" />
+        <img src={cafe.image} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         {/* Back button — circle on mobile, pill on desktop */}
         <Link
@@ -369,6 +369,24 @@ export default function CafeDetail() {
               <p className="text-sm leading-relaxed text-muted-foreground">{cafe.about}</p>
             </section>
 
+            {/* Food menu — placed near the top so live POS items are easy to find */}
+            {cafe.foodItems && cafe.foodItems.length > 0 && (
+              <section className="border-y border-border/60 py-6 sm:py-8">
+                <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Food Menu</h2>
+                <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+                  {cafe.foodItems.map((item, index) => (
+                    <div key={`${item.name || item.title || item.itemName || 'item'}-${index}`} className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-[0_4px_16px_oklch(0_0_0/0.18)]">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-foreground">{item.name || item.title || item.itemName || 'Menu item'}</div>
+                        {item.category && <div className="mt-0.5 text-xs text-muted-foreground">{item.category}</div>}
+                      </div>
+                      {item.price !== undefined && item.price !== null && <span className="shrink-0 text-sm font-bold text-[oklch(0.78_0.12_265)]">₹{item.price}</span>}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Station boxes — mobile only */}
             <section className="lg:hidden">
               <h2 className="mb-3 text-base font-bold">Station Availability</h2>
@@ -408,24 +426,6 @@ export default function CafeDetail() {
                 })}
               </div>
             </section>
-
-            {/* Food menu from the café's live POS configuration */}
-            {cafe.foodItems && cafe.foodItems.length > 0 && (
-              <section>
-                <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Food Menu</h2>
-                <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
-                  {cafe.foodItems.map((item, index) => (
-                    <div key={`${item.name || item.title || item.itemName || 'item'}-${index}`} className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-card px-4 py-3">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-foreground">{item.name || item.title || item.itemName || 'Menu item'}</div>
-                        {item.category && <div className="mt-0.5 text-xs text-muted-foreground">{item.category}</div>}
-                      </div>
-                      {item.price !== undefined && item.price !== null && <span className="shrink-0 text-sm font-bold text-[oklch(0.78_0.12_265)]">₹{item.price}</span>}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
 
             {/* Gallery */}
             {cafe.gallery.length > 1 && (
