@@ -137,6 +137,8 @@ export default function CafeDetail() {
   const [liveSnapshot, setLiveSnapshot] = useState<LiveCafeSnapshot | null>(null);
   const [liveError, setLiveError] = useState(false);
   const [liveLoading, setLiveLoading] = useState(true);
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -564,7 +566,12 @@ export default function CafeDetail() {
 
             {/* Reviews */}
             <section>
-              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Reviews</h2>
+              <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
+                <h2 className="text-base font-bold sm:text-lg">Reviews</h2>
+                <button onClick={() => { setRatingSubmitted(false); setRatingOpen(true); }} className="rounded-full border border-[oklch(0.45_0.12_60/0.6)] bg-[oklch(0.24_0.08_60/0.25)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.88_0.13_60)] transition-colors hover:bg-[oklch(0.28_0.10_60/0.4)]">
+                  Rate this café · 5★
+                </button>
+              </div>
               <div className="space-y-3 sm:space-y-4">
                 {cafe.reviews.map((rev) => (
                   <div key={rev.author} className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
@@ -721,6 +728,29 @@ export default function CafeDetail() {
             </div>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">Call the cafe to reserve a specific station</p>
+          </div>
+        </div>
+      )}
+
+      {ratingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => setRatingOpen(false)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div className="relative z-10 w-full max-w-sm rounded-3xl border border-border/60 bg-[oklch(0.13_0.02_265)] p-6 text-center shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button onClick={() => setRatingOpen(false)} className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
+            {ratingSubmitted ? (
+              <>
+                <div className="mb-3 text-4xl">★★★★★</div>
+                <h3 className="text-lg font-bold">Thanks for your rating</h3>
+                <p className="mt-2 text-sm text-muted-foreground">Your 5-star feedback was recorded.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold">Rate {cafe.name}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">How was your experience?</p>
+                <button onClick={() => setRatingSubmitted(true)} className="mt-5 inline-flex items-center gap-1 rounded-2xl border border-[oklch(0.55_0.14_60/0.7)] bg-[oklch(0.28_0.10_60/0.35)] px-5 py-3 text-2xl text-[oklch(0.84_0.15_60)] transition-transform hover:scale-105" aria-label="Give 5 stars">★★★★★</button>
+                <p className="mt-2 text-xs text-muted-foreground">Tap the five stars to submit</p>
+              </>
+            )}
           </div>
         </div>
       )}
