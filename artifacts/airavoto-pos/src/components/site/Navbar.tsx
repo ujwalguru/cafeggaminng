@@ -115,6 +115,14 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/tournaments"
+                className="block rounded-xl px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+              >
+                Tournaments
+              </Link>
+            </li>
           </ul>
           <Link
             href="/signup"
