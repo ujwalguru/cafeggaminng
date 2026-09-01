@@ -93,6 +93,16 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
             )}
           </div>
 
+          {cafe.foodItems && cafe.foodItems.length > 0 && (
+            <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <span className="font-medium text-foreground">Food:</span>
+              <span className="truncate">
+                {cafe.foodItems.slice(0, 3).map((item) => item.name || item.title || item.itemName || 'Menu item').join(' · ')}
+                {cafe.foodItems.length > 3 ? ` +${cafe.foodItems.length - 3}` : ''}
+              </span>
+            </div>
+          )}
+
           {/* Price + seats/hours */}
           <div className="flex items-center justify-between border-t border-border/40 pt-2.5 text-[12px]">
             <span className="font-semibold text-foreground">
