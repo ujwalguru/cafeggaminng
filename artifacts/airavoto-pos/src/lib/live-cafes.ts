@@ -222,7 +222,16 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
   const totalSeats = snapshot.devices.reduce((total, device) => total + device.total, 0);
   const availableSeats = snapshot.devices.reduce((total, device) => total + device.available, 0);
   const pricing = Array.isArray(snapshot.configurations?.pricing) ? snapshot.configurations.pricing : [];
-  const pricePerHour = Number(pricing.find((item) => Number(item.duration) === 60 && Number(item.price) > 0)?.price ?? pricing.find((item) => Number(item.price) > 0)?.price ?? 0);
+  const positivePricing = pricing.filter((item) => Number(item.price) > 0);
+  const pricePerHour = positivePricing.length > 0
+    ? Math.min(...positivePricing.map((item) => Number(item.price)))
+    : 0;
+  const plansByCategory = new Map<string, any>();
+  for (const item of positivePricing) {
+    const category = String(item.category ?? 'Gaming session');
+    const existing = plansByCategory.get(category);
+    if (!existing || Number(item.price) < Number(existing.price)) plansByCategory.set(category, item);
+  }
   const metadata = snapshot.metadata || {};
   return {
     id: snapshot.slug,
@@ -251,7 +260,11 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     happyHourPricing: normalizeHappyHourPricing(snapshot.configurations?.happyHoursPricing ?? snapshot.configurations?.happy_hours_pricing),
     phone: String(metadata.phone ?? metadata.whatsappNumber ?? metadata.whatsapp_number ?? ''),
     maps: String(metadata.maps ?? 'https://maps.google.com'),
-    plans: pricing.map((item: any) => ({ name: String(item.category ?? 'Gaming session'), duration: String(item.duration ?? ''), price: Number(item.price ?? 0) })),
+    plans: Array.from(plansByCategory.values()).map((item: any) => ({
+      name: String(item.category ?? 'Gaming session'),
+      duration: Number(item.duration) === 1 ? '1 hr' : `${String(item.duration ?? '')} min`,
+      price: Number(item.price),
+    })),
     reviews: [],
     games: displayStrings(metadata.games),
   };
