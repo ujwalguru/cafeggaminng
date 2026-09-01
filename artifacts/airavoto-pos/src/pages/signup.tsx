@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 export default function Signup() {
   const [, navigate] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
+  const [googleMessage, setGoogleMessage] = useState('');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -17,6 +18,15 @@ export default function Signup() {
     e.preventDefault();
     // placeholder — wire to auth backend when ready
     navigate('/');
+  }
+
+  function handleGoogleSignIn() {
+    const authUrl = import.meta.env.VITE_GOOGLE_AUTH_URL;
+    if (authUrl) {
+      window.location.assign(authUrl);
+      return;
+    }
+    setGoogleMessage('Google sign-in will be available when authentication is connected.');
   }
 
   return (
@@ -31,6 +41,24 @@ export default function Signup() {
             <p className="mt-2 text-sm text-muted-foreground">
               Find and review gaming cafes across India
             </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-full border border-border/70 bg-surface px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-surface-2 active:scale-[0.98]"
+          >
+            <span className="flex size-5 items-center justify-center rounded-full bg-white text-[13px] font-bold leading-none text-[#4285F4]">G</span>
+            Continue with Google
+          </button>
+          {googleMessage && (
+            <p className="mt-3 text-center text-xs text-muted-foreground" role="status">{googleMessage}</p>
+          )}
+
+          <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border/60" />
+            <span>or sign up with email</span>
+            <span className="h-px flex-1 bg-border/60" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

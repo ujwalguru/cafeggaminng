@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { MapPin } from 'lucide-react';
+import { MobileBottomNav } from '@/components/site/MobileBottomNav';
 
 const DISCOVER = [
   { label: 'Browse all cafes', to: '/cafes' },
@@ -33,7 +34,8 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t border-border/50 bg-[oklch(0.10_0_0)]">
+    <>
+      <footer className="border-t border-border/50 bg-[oklch(0.10_0_0)]">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1.6fr_1fr_1.2fr_1fr]">
 
         {/* Brand + newsletter */}
@@ -130,10 +132,12 @@ export function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="mx-auto flex max-w-6xl items-center justify-between border-t border-border/50 px-5 py-5">
+      <div className="mx-auto flex max-w-6xl items-center justify-between border-t border-border/50 px-5 pb-24 pt-5 lg:pb-5">
         <p className="text-[12px] text-muted-foreground">© 2026 Airavoto Cafe. All rights reserved.</p>
         <p className="text-[12px] text-muted-foreground">Find gaming cafes across India</p>
       </div>
-    </footer>
+      </footer>
+      <MobileBottomNav />
+    </>
   );
 }
