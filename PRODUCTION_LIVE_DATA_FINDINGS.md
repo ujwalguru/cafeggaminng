@@ -1,5 +1,7 @@
 # Production live-data diagnosis
 
-The deployed Airavoto service at `https://airavotoheadcli.onrender.com/api/directory` responds successfully and contains a live record such as `fgh-cafe`, with PC and PS5 availability. The Café Gaming Vercel configuration currently builds only the static frontend at `artifacts/airavoto-pos/dist` and rewrites every path to `/index.html`; it does not deploy the separate Express API server. Therefore the browser request to `/api/live-cafes` cannot reach the Café Gaming proxy and the UI silently falls back to the static catalog.
+The deployed Airavoto service at `https://airavotoheadcli.onrender.com/api/directory` responds successfully and contains live PC and PS5 availability.
 
-The homepage also still derives its cards from `getTopRated(6)` and had not yet been wired to the live snapshots, which explains why the screenshot showed the default featured cafés even after the backend integration was pushed.
+The exact Vercel URL `https://cafeggaminng-airavoto-pos.vercel.app/` is reachable, but the homepage still shows the static catalog (`HyperFrame Gaming`, `Arena Pro Gaming`, and `Neon Arena`). Directly opening `https://cafeggaminng-airavoto-pos.vercel.app/api/live-cafes` returns the Café Gaming 404 SPA page rather than JSON. This proves the Vercel rewrite is not active on the currently served production deployment, or the deployment is using a different project configuration than the repository's `vercel.json`.
+
+The latest GitHub code includes a Render rewrite and homepage live fetching, but production behavior has not picked it up yet. The fix must therefore be deployed to the Vercel project configured for this exact domain, and the production deployment must be confirmed against commit `cd99a6a` or a later commit.
