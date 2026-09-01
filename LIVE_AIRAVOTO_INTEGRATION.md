@@ -9,8 +9,9 @@ The two repositories are connected through a server-side proxy. Airavoto receive
 | Airavoto on Render | `DATABASE_URL` | The production PostgreSQL connection string. This keeps heartbeats available after a restart. |
 | Airavoto on Render | `CORS_ORIGINS` | The Café Gaming website origin, for example `https://cafe.example.com`. Multiple origins may be comma-separated. |
 | Café Gaming API server | `AIRAVOTO_API_URL` | `https://airavotoheadcli.onrender.com` |
+| Café Gaming Vercel frontend | `VITE_AIRAVOTO_API_URL` | `https://airavotoheadcli.onrender.com` |
 
-The Vercel deployment is a static frontend, so it uses the repository `vercel.json` rewrite `/api/live-cafes` → `https://airavotoheadcli.onrender.com/api/directory`. This prevents the static frontend from falling through to `index.html` for the API request. After pushing changes, redeploy the Vercel project so the rewrite is active. If Café Gaming is deployed with its separate Express API server instead, set `AIRAVOTO_API_URL` there and use that proxy.
+The Vercel deployment is a static frontend. The frontend now calls `${VITE_AIRAVOTO_API_URL}/api/directory` directly, defaulting to `https://airavotoheadcli.onrender.com`; set `VITE_AIRAVOTO_API_URL` in Vercel if you want to override it. The repository also keeps a `vercel.json` rewrite as a fallback for `/api/live-cafes`. After pushing changes, redeploy the Vercel project. If Café Gaming is deployed with its separate Express API server instead, set `AIRAVOTO_API_URL` there and use that proxy.
 
 ## Frontend behavior
 

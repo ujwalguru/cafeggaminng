@@ -93,8 +93,10 @@ export function getLiveDevice(snapshot: LiveCafeSnapshot | null, type: 'PC' | 'P
   return snapshot.devices.find((device) => normalizeType(device.type) === type) ?? null;
 }
 
+const AIRAVOTO_API_URL = (import.meta.env.VITE_AIRAVOTO_API_URL || 'https://airavotoheadcli.onrender.com').replace(/\/$/, '');
+
 export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
-  const response = await fetch('/api/live-cafes', { headers: { Accept: 'application/json' } });
+  const response = await fetch(`${AIRAVOTO_API_URL}/api/directory`, { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error(`Live café service returned HTTP ${response.status}`);
   const payload = (await response.json()) as { data?: unknown };
   return Array.isArray(payload.data)
