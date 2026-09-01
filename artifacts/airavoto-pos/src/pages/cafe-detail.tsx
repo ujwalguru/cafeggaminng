@@ -139,6 +139,7 @@ export default function CafeDetail() {
   const [liveLoading, setLiveLoading] = useState(true);
   const [ratingOpen, setRatingOpen] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -574,7 +575,7 @@ export default function CafeDetail() {
             <section>
               <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
                 <h2 className="text-base font-bold sm:text-lg">Reviews</h2>
-                <button onClick={() => { setRatingSubmitted(false); setRatingOpen(true); }} className="rounded-full border border-[oklch(0.45_0.12_60/0.6)] bg-[oklch(0.24_0.08_60/0.25)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.88_0.13_60)] transition-colors hover:bg-[oklch(0.28_0.10_60/0.4)]">
+                <button onClick={() => { setRatingSubmitted(false); setSelectedRating(0); setRatingOpen(true); }} className="rounded-full border border-[oklch(0.45_0.12_60/0.6)] bg-[oklch(0.24_0.08_60/0.25)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.88_0.13_60)] transition-colors hover:bg-[oklch(0.28_0.10_60/0.4)]">
                   Rate this café · 5★
                 </button>
               </div>
@@ -745,16 +746,21 @@ export default function CafeDetail() {
             <button onClick={() => setRatingOpen(false)} className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
             {ratingSubmitted ? (
               <>
-                <div className="mb-3 text-4xl">★★★★★</div>
+                <div className="mb-3 text-4xl text-[oklch(0.84_0.15_60)]">{'★'.repeat(selectedRating)}<span className="text-muted-foreground/40">{'★'.repeat(5 - selectedRating)}</span></div>
                 <h3 className="text-lg font-bold">Thanks for your rating</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Your 5-star feedback was recorded.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Your {selectedRating}-star feedback was recorded.</p>
               </>
             ) : (
               <>
                 <h3 className="text-lg font-bold">Rate {cafe.name}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">How was your experience?</p>
-                <button onClick={() => setRatingSubmitted(true)} className="mt-5 inline-flex items-center gap-1 rounded-2xl border border-[oklch(0.55_0.14_60/0.7)] bg-[oklch(0.28_0.10_60/0.35)] px-5 py-3 text-2xl text-[oklch(0.84_0.15_60)] transition-transform hover:scale-105" aria-label="Give 5 stars">★★★★★</button>
-                <p className="mt-2 text-xs text-muted-foreground">Tap the five stars to submit</p>
+                <div className="mt-5 flex justify-center gap-1" role="radiogroup" aria-label="Choose a rating from one to five stars">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button key={rating} onClick={() => setSelectedRating(rating)} className={`rounded-lg px-1 text-3xl transition-transform hover:scale-110 ${rating <= selectedRating ? 'text-[oklch(0.84_0.15_60)]' : 'text-muted-foreground/40'}`} aria-label={`${rating} star${rating === 1 ? '' : 's'}`} aria-pressed={selectedRating === rating}>★</button>
+                  ))}
+                </div>
+                <button disabled={!selectedRating} onClick={() => setRatingSubmitted(true)} className="mt-4 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40">Submit rating</button>
+                <p className="mt-2 text-xs text-muted-foreground">Choose 1–5 stars, then submit</p>
               </>
             )}
           </div>
