@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 
 const router: IRouter = Router();
 
-const AIRAVOTO_API_URL = (process.env.AIRAVOTO_API_URL || "").replace(/\/$/, "");
+const AIRAVOTO_API_URL = (process.env.AIRAVOTO_API_URL || "https://airavotoheadcli.onrender.com").replace(/\/$/, "");
 
 router.get("/live-cafes", async (_req, res) => {
   if (!AIRAVOTO_API_URL) {

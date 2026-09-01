@@ -8,7 +8,7 @@ The two repositories are connected through a server-side proxy. Airavoto receive
 | --- | --- | --- |
 | Airavoto on Render | `DATABASE_URL` | The production PostgreSQL connection string. This keeps heartbeats available after a restart. |
 | Airavoto on Render | `CORS_ORIGINS` | The Café Gaming website origin, for example `https://cafe.example.com`. Multiple origins may be comma-separated. |
-| Café Gaming API server | `AIRAVOTO_API_URL` | The public Airavoto Render base URL without a trailing slash, for example `https://airavoto.onrender.com`. |
+| Café Gaming API server | `AIRAVOTO_API_URL` | `https://airavotoheadcli.onrender.com` |
 
 After adding the variables, redeploy both services. The Café Gaming API must be able to make an outbound HTTPS request to Airavoto.
 
