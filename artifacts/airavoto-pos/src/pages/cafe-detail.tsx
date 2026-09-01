@@ -13,7 +13,7 @@ import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
-import { fetchLiveCafe, getLiveDevice, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { fetchLiveCafe, getLiveDevice, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = 'PC' | 'PS5';
@@ -67,7 +67,7 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }
 
 export default function CafeDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const cafe = getCafeBySlug(slug);
+  const staticCafe = getCafeBySlug(slug);
 
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
@@ -97,6 +97,7 @@ export default function CafeDetail() {
     };
   }, [slug]);
 
+  const cafe = staticCafe ?? (liveSnapshot ? liveSnapshotToCafe(liveSnapshot) : undefined);
   const hasConsole = cafe?.categories.includes('Console') ?? false;
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');

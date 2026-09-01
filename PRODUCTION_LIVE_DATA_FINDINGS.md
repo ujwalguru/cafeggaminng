@@ -1,7 +1,5 @@
 # Production live-data diagnosis
 
-The deployed Airavoto service at `https://airavotoheadcli.onrender.com/api/directory` responds successfully and contains live PC and PS5 availability.
+The exact Vercel homepage now successfully displays cafés returned from Render: `oklp cafe`, `idk cafe`, `fgh cafe`, `op cafe`, and `GG Cafe`. The Render café `fgh cafe` shows `50 available`, with `PC 30/30` and `PS5 20/20`, confirming the direct Render request is working in production.
 
-The exact Vercel URL `https://cafeggaminng-airavoto-pos.vercel.app/` still renders the static catalog. In the live browser, `fetch('/api/live-cafes')` returns HTTP 200 with `content-type: text/html` and a 1,401-byte HTML document, not JSON. This is the SPA fallback, confirming that the deployed Vercel project is not applying the repository rewrite for `/api/live-cafes`.
-
-The homepage's deployed output therefore cannot receive live data and continues to show the bundled defaults. The robust fix is to make the frontend call the Airavoto Render URL directly, with a configurable `VITE_AIRAVOTO_API_URL` and a safe default of `https://airavotoheadcli.onrender.com`, while retaining the rewrite/proxy configuration for deployments where it is supported.
+The direct route `/cafes/fgh-cafe` still returns the static catalog's 404 page because the detail page's lookup only checks the hard-coded `cafes` array. The next fix must make the detail route resolve a live café from the fetched Render snapshot instead of treating it as missing.
