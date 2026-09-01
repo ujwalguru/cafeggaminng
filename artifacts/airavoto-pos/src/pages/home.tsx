@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import {
   Search, MapPin, Gamepad2, Zap, ArrowRight, ChevronRight
@@ -6,8 +6,9 @@ import {
 import { CafeCard } from '@/components/site/CafeCard';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
-import { getTopRated, getCafeCountByCity, CITIES } from '@/lib/cafes';
+import { getTopRated, CITIES } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
+import { fetchLiveCafes, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 const POPULAR = ['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'];
 
@@ -42,11 +43,34 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [locationQ, setLocationQ] = useState('');
   const [deviceQ, setDeviceQ] = useState('');
+  const [liveSnapshots, setLiveSnapshots] = useState<LiveCafeSnapshot[]>([]);
 
-  const allCafes = getTopRated(6);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const snapshots = await fetchLiveCafes();
+        if (!cancelled) setLiveSnapshots(snapshots);
+      } catch {
+        // Keep the static catalog as a graceful fallback while the live bridge is unavailable.
+      }
+    };
+    load();
+    const interval = window.setInterval(load, 15_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const liveBySlug = useMemo(() => new Map(liveSnapshots.map((snapshot) => [snapshot.slug, snapshot])), [liveSnapshots]);
+  const allCafes = useMemo(() => liveSnapshots.length > 0 ? liveSnapshots.map(liveSnapshotToCafe) : getTopRated(6), [liveSnapshots]);
   const featured = allCafes.slice(0, 3);    // Top-rated near you
   const favourites = allCafes.slice(3, 6);  // Gamers' favourites
-  const cityCounts = getCafeCountByCity();
+  const cityCounts = useMemo(() => allCafes.reduce((counts, cafe) => {
+    counts[cafe.city] = (counts[cafe.city] || 0) + 1;
+    return counts;
+  }, {} as Record<string, number>), [allCafes]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -165,7 +189,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid gap-5 sm:grid-cols-3">
-          {featured.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} />)}
+          {featured.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />)}
         </div>
       </section>
 
@@ -181,7 +205,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid gap-5 sm:grid-cols-3">
-          {favourites.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} />)}
+          {favourites.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />)}
         </div>
       </section>
 

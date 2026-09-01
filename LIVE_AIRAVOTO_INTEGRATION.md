@@ -10,7 +10,7 @@ The two repositories are connected through a server-side proxy. Airavoto receive
 | Airavoto on Render | `CORS_ORIGINS` | The Café Gaming website origin, for example `https://cafe.example.com`. Multiple origins may be comma-separated. |
 | Café Gaming API server | `AIRAVOTO_API_URL` | `https://airavotoheadcli.onrender.com` |
 
-After adding the variables, redeploy both services. The Café Gaming API must be able to make an outbound HTTPS request to Airavoto.
+The Vercel deployment is a static frontend, so it uses the repository `vercel.json` rewrite `/api/live-cafes` → `https://airavotoheadcli.onrender.com/api/directory`. This prevents the static frontend from falling through to `index.html` for the API request. After pushing changes, redeploy the Vercel project so the rewrite is active. If Café Gaming is deployed with its separate Express API server instead, set `AIRAVOTO_API_URL` there and use that proxy.
 
 ## Frontend behavior
 

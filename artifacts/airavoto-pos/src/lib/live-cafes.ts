@@ -42,6 +42,15 @@ function normalizeType(value: unknown): string {
   return String(value || 'PC').trim().toUpperCase();
 }
 
+function normalizeCategory(value: unknown): GameCategory | null {
+  const category = String(value || '').trim().toUpperCase();
+  if (category.includes('PS5') || category.includes('CONSOLE') || category.includes('PLAYSTATION')) return 'Console';
+  if (category.includes('PC') || category.includes('COMPUTER')) return 'PC';
+  if (category.includes('VR')) return 'VR';
+  if (category.includes('MOBILE') || category.includes('PHONE')) return 'Mobile';
+  return null;
+}
+
 function inferDeviceType(device: any): string {
   const descriptor = [device?.type, device?.category, device?.name, device?.platform]
     .filter(Boolean)
@@ -94,8 +103,8 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
         const devices = Array.isArray(listing.availability) ? listing.availability.map(normalizeDevice) : [];
         const categories = Array.from(new Set(
           (Array.isArray(metadata.categories) ? metadata.categories : [])
-            .concat(devices.map((device: LiveDeviceAvailability) => device.type === 'PS5' ? 'Console' : device.type)),
-        )).filter(Boolean) as GameCategory[];
+            .concat(devices.map((device: LiveDeviceAvailability) => device.type)),
+        )).map(normalizeCategory).filter(Boolean) as GameCategory[];
         return {
           slug: String(listing.slug ?? listing.cafe_slug ?? metadata.id ?? ''),
           name: String(metadata.name ?? listing.cafe_name ?? listing.slug ?? 'Gaming café'),
