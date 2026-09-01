@@ -1,4 +1,4 @@
-import type { Cafe, GameCategory } from '@/lib/cafes';
+import type { Cafe, CafeHappyHour, CafeHappyHourPricing, GameCategory } from '@/lib/cafes';
 
 export interface LiveSeat {
   id: string;
@@ -34,7 +34,9 @@ export interface LiveCafeSnapshot {
     devices?: Array<Record<string, unknown>>;
     pricing?: Array<Record<string, unknown>>;
     happyHours?: Array<Record<string, unknown>>;
+    happy_hours?: Array<Record<string, unknown>>;
     happyHoursPricing?: Array<Record<string, unknown>>;
+    happy_hours_pricing?: Array<Record<string, unknown>>;
   };
 }
 
@@ -74,6 +76,69 @@ function displayStrings(value: unknown): string[] {
     })
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeHours(value: unknown): { day: string; time: string }[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string') return { day: 'Every day', time: item.trim() };
+        if (!item || typeof item !== 'object') return null;
+        const record = item as Record<string, unknown>;
+        const day = String(record.day ?? record.days ?? record.label ?? 'Every day').trim();
+        const time = String(record.time ?? record.hours ?? record.value ?? '').trim();
+        return time ? { day, time } : null;
+      })
+      .filter((item): item is { day: string; time: string } => Boolean(item));
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    return [{ day: 'Every day', time: value.trim() }];
+  }
+
+  return [];
+}
+
+function normalizeEnabled(value: unknown): boolean {
+  if (typeof value === 'string') return !['false', '0', 'off', 'disabled', 'no'].includes(value.trim().toLowerCase());
+  return value !== false && value !== 0;
+}
+
+function normalizeHappyHours(value: unknown): CafeHappyHour[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const record = item as Record<string, unknown>;
+      const startTime = String(record.startTime ?? record.start_time ?? '').trim();
+      const endTime = String(record.endTime ?? record.end_time ?? '').trim();
+      if (!startTime || !endTime) return null;
+      return {
+        category: String(record.category ?? 'All gaming').trim() || 'All gaming',
+        startTime,
+        endTime,
+        enabled: normalizeEnabled(record.enabled),
+      };
+    })
+    .filter((item): item is CafeHappyHour => Boolean(item));
+}
+
+function normalizeHappyHourPricing(value: unknown): CafeHappyHourPricing[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const record = item as Record<string, unknown>;
+      const price = Number(record.price ?? 0);
+      if (!Number.isFinite(price) || price <= 0) return null;
+      return {
+        category: String(record.category ?? 'All gaming').trim() || 'All gaming',
+        duration: Number(record.duration ?? 0),
+        price,
+        personCount: Number(record.personCount ?? record.person_count ?? 1),
+      };
+    })
+    .filter((item): item is CafeHappyHourPricing => Boolean(item));
 }
 
 function normalizeSeat(seat: any, index: number): LiveSeat {
@@ -124,6 +189,11 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
             .map(normalizeCategory)
             .filter(Boolean),
         )) as GameCategory[];
+        const status: LiveCafeSnapshot['status'] = listing.status === 'offline'
+          ? 'offline'
+          : listing.status === 'suspended'
+            ? 'suspended'
+            : 'online';
         return {
           slug: String(listing.slug ?? listing.cafe_slug ?? metadata.id ?? ''),
           name: String(metadata.name ?? listing.cafe_name ?? listing.slug ?? 'Gaming café'),
@@ -132,7 +202,7 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
           address: String(metadata.address ?? metadata.location?.address ?? ''),
           categories,
           metadata,
-          status: listing.status === 'offline' ? 'offline' : listing.status === 'suspended' ? 'suspended' : 'online',
+          status,
           is_stale: Boolean(listing.is_stale),
           last_updated: Number(listing.last_updated || 0),
           last_heartbeat: listing.capturedAt || listing.last_heartbeat,
@@ -167,16 +237,19 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     pricePerHour,
     isOpen: snapshot.status === 'online' && !snapshot.is_stale,
     openUntil: String(metadata.openUntil ?? metadata.open_until ?? ''),
-    hoursDisplay: String(metadata.hoursDisplay ?? metadata.hours_display ?? 'Live status'),
+    hoursDisplay: String(metadata.hoursDisplay ?? metadata.hours_display ?? metadata.hours ?? 'Live status'),
     image: String(metadata.image ?? 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=900&q=80&auto=format&fit=crop'),
     gallery: displayStrings(metadata.gallery),
     categories: snapshot.categories,
-    amenities: displayStrings(metadata.amenities),
+    amenities: displayStrings(metadata.amenities) as Cafe['amenities'],
     totalSeats,
     availableSeats,
     about: String(metadata.about ?? 'Check live PC and PS5 availability before you visit.'),
-    hours: Array.isArray(metadata.hours) ? metadata.hours : [],
-    phone: String(metadata.phone ?? ''),
+    hours: normalizeHours(metadata.hours ?? metadata.openingHours ?? metadata.opening_hours),
+    happyHours: normalizeHappyHours(snapshot.configurations?.happyHours ?? snapshot.configurations?.happy_hours)
+      .filter((item) => item.enabled),
+    happyHourPricing: normalizeHappyHourPricing(snapshot.configurations?.happyHoursPricing ?? snapshot.configurations?.happy_hours_pricing),
+    phone: String(metadata.phone ?? metadata.whatsappNumber ?? metadata.whatsapp_number ?? ''),
     maps: String(metadata.maps ?? 'https://maps.google.com'),
     plans: pricing.map((item: any) => ({ name: String(item.category ?? 'Gaming session'), duration: String(item.duration ?? ''), price: Number(item.price ?? 0) })),
     reviews: [],

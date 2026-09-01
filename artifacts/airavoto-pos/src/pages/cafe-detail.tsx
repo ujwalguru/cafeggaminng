@@ -7,6 +7,7 @@ import {
   ChevronRight, ExternalLink, MessageCircle, Gamepad2, X
 } from 'lucide-react';
 import { CafeCard } from '@/components/site/CafeCard';
+import type { Cafe } from '@/lib/cafes';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
@@ -29,6 +30,32 @@ function formatOccupiedUntil(value: string | null) {
   }
   const text = value.replace(/^until\s+/i, '').trim();
   return text ? `Until ${text}` : 'Occupied now';
+}
+
+function formatHour(value: string) {
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?$/);
+  if (!match) return value;
+  const hour = Number(match[1]);
+  const minute = match[2] ?? '00';
+  if (hour > 23) return value;
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute} ${suffix}`;
+}
+
+function formatDuration(minutes: number) {
+  if (!Number.isFinite(minutes) || minutes <= 0) return 'Session';
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours} hr${hours === 1 ? '' : 's'}`;
+  }
+  return `${minutes} min`;
+}
+
+function sameCategory(left: string, right: string) {
+  const normalizedLeft = left.trim().toLowerCase();
+  const normalizedRight = right.trim().toLowerCase();
+  return normalizedLeft === normalizedRight || normalizedLeft === 'all gaming' || normalizedRight === 'all gaming';
 }
 
 function dedupeStations(stations: Station[]) {
@@ -154,6 +181,9 @@ export default function CafeDetail() {
   const modalAvail    = stationModal === 'PC' ? pcAvail    : ps5Avail;
   const modalTotal    = stationModal === 'PC' ? pcTotal    : ps5Total;
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
+  const happyHours = cafe?.happyHours ?? [];
+  const happyHourPricing = cafe?.happyHourPricing ?? [];
+  const hasHappyHourData = happyHours.length > 0 || happyHourPricing.length > 0;
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -179,7 +209,7 @@ export default function CafeDetail() {
 
   if (!cafe) return <NotFound />;
 
-  const related = [];
+  const related: Cafe[] = [];
 
   // ── Reusable sub-components ────────────────────────────────────────────────
   const StationBoxes = () => (
@@ -421,11 +451,63 @@ export default function CafeDetail() {
               </div>
             </section>
 
+            {/* Happy-hour pricing */}
+            {hasHappyHourData && (
+              <section>
+                <div className="mb-3 flex items-start justify-between gap-3 sm:mb-4">
+                  <div>
+                    <h2 className="text-base font-bold sm:text-lg">Happy-hour pricing</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">Special rates configured by this café.</p>
+                  </div>
+                  <Clock className="mt-0.5 size-5 shrink-0 text-[oklch(0.80_0.14_60)]" />
+                </div>
+                {happyHours.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {happyHours.map((happyHour) => (
+                      <span
+                        key={`${happyHour.category}-${happyHour.startTime}-${happyHour.endTime}`}
+                        className="rounded-full border border-[oklch(0.45_0.12_60/0.55)] bg-[oklch(0.24_0.08_60/0.3)] px-3 py-1.5 text-xs font-medium text-[oklch(0.88_0.13_60)]"
+                      >
+                        {happyHour.category}: {formatHour(happyHour.startTime)}–{formatHour(happyHour.endTime)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {happyHourPricing.length > 0 ? (
+                  <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+                    {happyHourPricing.map((plan) => {
+                      const schedule = happyHours.find((happyHour) => sameCategory(happyHour.category, plan.category));
+                      return (
+                        <div key={`${plan.category}-${plan.duration}-${plan.personCount}`} className="flex items-center justify-between rounded-2xl border border-[oklch(0.45_0.12_60/0.45)] bg-[oklch(0.20_0.07_60/0.2)] px-4 py-3.5 sm:px-5 sm:py-4">
+                          <div>
+                            <div className="text-sm font-bold text-foreground">{plan.category}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              {formatDuration(plan.duration)}{plan.personCount > 1 ? ` · ${plan.personCount} players` : ''}
+                            </div>
+                            {schedule && (
+                              <div className="mt-1 text-[11px] text-[oklch(0.80_0.13_60)]">
+                                {formatHour(schedule.startTime)}–{formatHour(schedule.endTime)}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xl font-extrabold text-foreground">₹{plan.price}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm text-muted-foreground">
+                    Happy-hour times are available; ask the café for the current rate.
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* Hours */}
             <section>
               <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Opening Hours</h2>
               <div className="overflow-hidden rounded-2xl border border-border/60">
-                {cafe.hours.map(({ day, time }, i) => (
+                {cafe.hours.length > 0 ? cafe.hours.map(({ day, time }, i) => (
                   <div
                     key={day}
                     className={`flex items-center justify-between px-4 py-3 text-sm sm:px-5 sm:py-3.5 ${i !== 0 ? 'border-t border-border/40' : ''}`}
@@ -433,7 +515,9 @@ export default function CafeDetail() {
                     <span className="font-medium text-foreground">{day}</span>
                     <span className="text-muted-foreground">{time}</span>
                   </div>
-                ))}
+                )) : (
+                  <div className="px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-3.5">Hours not available</div>
+                )}
               </div>
             </section>
 

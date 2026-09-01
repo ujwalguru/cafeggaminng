@@ -21,6 +21,20 @@ export interface CafePlan {
   highlight?: boolean;
 }
 
+export interface CafeHappyHour {
+  category: string;
+  startTime: string;
+  endTime: string;
+  enabled: boolean;
+}
+
+export interface CafeHappyHourPricing {
+  category: string;
+  duration: number;
+  price: number;
+  personCount: number;
+}
+
 export interface CafeReview {
   author: string;
   avatar: string;
@@ -52,6 +66,8 @@ export interface Cafe {
   availableSeats: number;
   about: string;
   hours: { day: string; time: string }[];
+  happyHours?: CafeHappyHour[];
+  happyHourPricing?: CafeHappyHourPricing[];
   phone: string;
   maps: string;
   plans: CafePlan[];
