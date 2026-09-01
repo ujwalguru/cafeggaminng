@@ -176,6 +176,7 @@ export function getLiveDevice(snapshot: LiveCafeSnapshot | null, type: 'PC' | 'P
 }
 
 const AIRAVOTO_API_URL = (import.meta.env.VITE_AIRAVOTO_API_URL || 'https://airavotoheadcli.onrender.com').replace(/\/$/, '');
+export const DEFAULT_CAFE_IMAGE = 'https://res.cloudinary.com/iu8wwiuc/image/upload/f_auto,q_auto/WhatsApp_Image_2026-09-01_at_4.52.44_PM';
 
 export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
   const response = await fetch(`${AIRAVOTO_API_URL}/api/directory`, { headers: { Accept: 'application/json' } });
@@ -257,7 +258,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     isOpen: snapshot.status === 'online' && !snapshot.is_stale,
     openUntil: String(metadata.openUntil ?? metadata.open_until ?? ''),
     hoursDisplay: String(metadata.hoursDisplay ?? metadata.hours_display ?? metadata.hours ?? 'Live status'),
-    image: String(metadata.image ?? 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=900&q=80&auto=format&fit=crop'),
+    image: String(metadata.image || DEFAULT_CAFE_IMAGE),
     gallery: displayStrings(metadata.gallery),
     categories: snapshot.categories,
     amenities: displayStrings(metadata.amenities) as Cafe['amenities'],

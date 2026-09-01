@@ -12,7 +12,7 @@ import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
-import { fetchLiveCafe, getLiveDevice, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { DEFAULT_CAFE_IMAGE, fetchLiveCafe, getLiveDevice, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = 'PC' | 'PS5';
@@ -306,7 +306,7 @@ export default function CafeDetail() {
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
-        <img src={cafe.image} alt={cafe.name} className="h-full w-full object-cover" />
+        <img src={cafe.image} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         {/* Back button — circle on mobile, pill on desktop */}
         <Link

@@ -1,7 +1,7 @@
 import { Link } from 'wouter';
 import { MapPin, Star, Monitor, Gamepad2, Headphones, Smartphone } from 'lucide-react';
 import type { Cafe, GameCategory } from '@/lib/cafes';
-import { getLiveDevice, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { DEFAULT_CAFE_IMAGE, getLiveDevice, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 const CATEGORY_ICON: Record<GameCategory, React.ElementType> = {
   PC: Monitor,
@@ -29,6 +29,10 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
           <img
             src={cafe.image}
             alt={cafe.name}
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = DEFAULT_CAFE_IMAGE;
+            }}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.12_0_0/0.7)] via-transparent to-transparent" />
