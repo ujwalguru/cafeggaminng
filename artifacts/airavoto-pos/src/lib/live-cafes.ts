@@ -222,15 +222,23 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
   const totalSeats = snapshot.devices.reduce((total, device) => total + device.total, 0);
   const availableSeats = snapshot.devices.reduce((total, device) => total + device.available, 0);
   const pricing = Array.isArray(snapshot.configurations?.pricing) ? snapshot.configurations.pricing : [];
-  const positivePricing = pricing.filter((item) => Number(item.price) > 0);
-  const pricePerHour = positivePricing.length > 0
-    ? Math.min(...positivePricing.map((item) => Number(item.price)))
+  // Render is the source of truth for live cafés. Do not add static/default plans;
+  // discard placeholder rows (for example PS5 at ₹0) before rendering anything.
+  const renderPricing = pricing
+    .map((item) => ({
+      ...item,
+      category: String(item.category ?? '').trim(),
+      price: Number(item.price ?? 0),
+    }))
+    .filter((item) => item.category && Number.isFinite(item.price) && item.price > 0);
+  const pricePerHour = renderPricing.length > 0
+    ? Math.min(...renderPricing.map((item) => item.price))
     : 0;
   const plansByCategory = new Map<string, any>();
-  for (const item of positivePricing) {
-    const category = String(item.category ?? 'Gaming session');
-    const existing = plansByCategory.get(category);
-    if (!existing || Number(item.price) < Number(existing.price)) plansByCategory.set(category, item);
+  for (const item of renderPricing) {
+    // One public plan per Render category: prefer the lowest valid configured rate.
+    const existing = plansByCategory.get(item.category);
+    if (!existing || item.price < Number(existing.price)) plansByCategory.set(item.category, item);
   }
   const metadata = snapshot.metadata || {};
   return {
