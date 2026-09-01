@@ -15,7 +15,7 @@ import NotFound from '@/pages/not-found';
 import { DEFAULT_CAFE_IMAGE, fetchLiveCafe, getLiveDevice, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
-type StationType = 'PC' | 'PS5';
+type StationType = string;
 interface Station { id: number; label: string; available: boolean; occupiedUntil: string | null }
 
 function stationKey(label: string) {
@@ -183,9 +183,14 @@ export default function CafeDetail() {
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
   const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }))) : buildStations('PC', pcTotal, pcAvail, seed);
   const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }))) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
-  const modalStations = stationModal === 'PC' ? pcStations : ps5Stations;
-  const modalAvail    = stationModal === 'PC' ? pcAvail    : ps5Avail;
-  const modalTotal    = stationModal === 'PC' ? pcTotal    : ps5Total;
+  const selectedDevice = stationModal ? liveSnapshot?.devices.find((device) => device.type === stationModal) : null;
+  const modalStations = stationModal === 'PC'
+    ? pcStations
+    : stationModal === 'PS5'
+      ? ps5Stations
+      : (selectedDevice?.seats ?? []).map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }));
+  const modalAvail = stationModal === 'PC' ? pcAvail : stationModal === 'PS5' ? ps5Avail : (selectedDevice?.available ?? 0);
+  const modalTotal = stationModal === 'PC' ? pcTotal : stationModal === 'PS5' ? ps5Total : (selectedDevice?.total ?? 0);
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
   const happyHours = cafe?.happyHours ?? [];
   const happyHourPricing = cafe?.happyHourPricing ?? [];
@@ -274,7 +279,7 @@ export default function CafeDetail() {
         </button>
       )}
       {otherLiveDevices.map((device) => (
-        <div key={device.type} className="rounded-2xl border border-border/60 bg-card p-4 text-left">
+        <button key={device.type} onClick={() => setStationModal(device.type)} className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]">
           <div className="mb-3 flex items-center justify-between">
             <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
               <Headphones className="size-4" />
@@ -290,7 +295,8 @@ export default function CafeDetail() {
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
             <div className="h-full rounded-full transition-all" style={{ width: device.total > 0 ? `${(device.available / device.total) * 100}%` : '0%', background: device.available > 0 ? 'oklch(0.72 0.18 150)' : 'oklch(0.60 0.18 25)' }} />
           </div>
-        </div>
+          <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+        </button>
       ))}
       </div>
     </div>
@@ -681,16 +687,16 @@ export default function CafeDetail() {
 
       {/* ── Station modal ─────────────────────────────────────── */}
       {stationModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setStationModal(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-3 py-4 sm:px-5" onClick={() => setStationModal(null)}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           <div
-            className="relative z-10 w-full max-w-lg rounded-t-3xl border border-border/60 bg-[oklch(0.13_0.02_265)] p-6 shadow-2xl sm:rounded-3xl"
+            className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-border/60 bg-[oklch(0.13_0.02_265)] p-5 shadow-2xl sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
-                  {stationModal === 'PC' ? <Monitor className="size-5" /> : <Gamepad2 className="size-5" />}
+                  {stationModal === 'PC' ? <Monitor className="size-5" /> : stationModal === 'PS5' ? <Gamepad2 className="size-5" /> : <Headphones className="size-5" />}
                 </span>
                 <div>
                   <h3 className="font-bold">{stationModal} Stations</h3>
