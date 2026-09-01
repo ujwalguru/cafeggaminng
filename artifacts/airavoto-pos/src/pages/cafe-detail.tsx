@@ -17,6 +17,44 @@ import { fetchLiveCafe, getLiveDevice, liveSnapshotToCafe, type LiveCafeSnapshot
 type StationType = 'PC' | 'PS5';
 interface Station { id: number; label: string; available: boolean; occupiedUntil: string | null }
 
+function stationKey(label: string) {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function formatOccupiedUntil(value: string | null) {
+  if (!value) return 'Occupied now';
+  const date = new Date(value);
+  if (!Number.isNaN(date.getTime()) && /[T-]/.test(value)) {
+    return `Until ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+  }
+  const text = value.replace(/^until\s+/i, '').trim();
+  return text ? `Until ${text}` : 'Occupied now';
+}
+
+function dedupeStations(stations: Station[]) {
+  const merged = new Map<string, Station>();
+  for (const station of stations) {
+    const key = stationKey(station.label) || `station${station.id}`;
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, station);
+      continue;
+    }
+
+    // If duplicate records exist, keep the occupied record because it is the safer live state.
+    if (existing.available && !station.available) {
+      merged.set(key, station);
+    } else if (!existing.occupiedUntil && station.occupiedUntil) {
+      merged.set(key, { ...existing, occupiedUntil: station.occupiedUntil });
+    }
+  }
+  return Array.from(merged.values()).sort((a, b) => {
+    const aNumber = Number(a.label.match(/\d+/)?.[0] ?? a.id);
+    const bNumber = Number(b.label.match(/\d+/)?.[0] ?? b.id);
+    return aNumber - bNumber || a.label.localeCompare(b.label);
+  });
+}
+
 function buildStations(type: StationType, total: number, avail: number, seed: number): Station[] {
   const indices = Array.from({ length: total }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
@@ -110,8 +148,8 @@ export default function CafeDetail() {
   const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
   const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
-  const pcStations  = livePc?.seats.length ? livePc.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null })) : buildStations('PC', pcTotal, pcAvail, seed);
-  const ps5Stations = livePs5?.seats.length ? livePs5.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null })) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
+  const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }))) : buildStations('PC', pcTotal, pcAvail, seed);
+  const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }))) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const modalStations = stationModal === 'PC' ? pcStations : ps5Stations;
   const modalAvail    = stationModal === 'PC' ? pcAvail    : ps5Avail;
   const modalTotal    = stationModal === 'PC' ? pcTotal    : ps5Total;
@@ -544,14 +582,15 @@ export default function CafeDetail() {
                   className={`rounded-xl border p-3 text-center ${
                     s.available
                       ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
-                      : 'border-border/40 bg-[oklch(0.15_0.02_0/0.4)]'
+                      : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                   }`}
                 >
-                  <p className={`text-xs font-bold ${s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
-                  {s.available
-                    ? <p className="mt-1 text-[10px] text-[oklch(0.65_0.14_150)]">Free</p>
-                    : <p className="mt-1 text-[10px] text-muted-foreground">Until {s.occupiedUntil}</p>
-                  }
+                  <p className={`text-sm font-bold ${s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
+                  {s.available ? (
+                    <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>
+                  ) : (
+                    <p className="mt-1 text-[10px] font-medium leading-tight text-[oklch(0.78_0.14_25)]">{formatOccupiedUntil(s.occupiedUntil)}</p>
+                  )}
                 </div>
               ))}
             </div>
