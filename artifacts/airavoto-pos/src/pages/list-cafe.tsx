@@ -50,11 +50,12 @@ function getLocationPart(address: Record<string, string> | undefined, keys: stri
 export default function ListCafe() {
   useDocumentMeta({ title: 'List Your Gaming Cafe — Airavoto Cafe', description: 'Add your gaming cafe to Airavoto and reach thousands of gamers.' });
 
-  const [form, setForm] = useState({ name: '', city: '', area: '', address: '', mapsLink: '', phone: '', email: '', description: '' });
+  const [form, setForm] = useState({ name: '', city: '', area: '', address: '', mapsLink: '', phone: '', whatsapp: '', email: '', description: '' });
   const [state, setState] = useState<FormState>('idle');
   const [locationResults, setLocationResults] = useState<LocationResult[]>([]);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationMessage, setLocationMessage] = useState('');
+  const [formError, setFormError] = useState('');
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -115,6 +116,17 @@ export default function ListCafe() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const indianMobile = /^[6-9]\d{9}$/;
+    const approvedEmail = /^[^\s@]+@(gmail|googlemail|outlook|hotmail|live|msn|yahoo)\.com$/i;
+    if (!indianMobile.test(form.phone) || !indianMobile.test(form.whatsapp)) {
+      setFormError('Enter valid 10-digit Indian mobile numbers beginning with 6, 7, 8, or 9.');
+      return;
+    }
+    if (!approvedEmail.test(form.email.trim())) {
+      setFormError('Use a Gmail, Outlook, Hotmail, Live, MSN, or Yahoo .com email address.');
+      return;
+    }
+    setFormError('');
     setState('submitting');
     setTimeout(() => setState('done'), 1400);
   }
@@ -220,9 +232,10 @@ export default function ListCafe() {
                   { name: 'city', label: 'City', placeholder: 'e.g. Mumbai', required: true },
                   { name: 'area', label: 'Area / Locality', placeholder: 'e.g. Andheri West', required: true },
                   { name: 'address', label: 'Full Address', placeholder: 'Street, building, landmark, pincode', required: true },
-                  { name: 'phone', label: 'Phone Number', placeholder: '+91 98200 00000', required: true },
-                  { name: 'email', label: 'Email Address', placeholder: 'owner@yourcafe.com', required: true },
-                ].map(({ name, label, placeholder, required }) => (
+                  { name: 'phone', label: 'Phone Number (India)', placeholder: '9820000000', required: true, type: 'tel', pattern: '[6-9][0-9]{9}', maxLength: 10 },
+                  { name: 'whatsapp', label: 'WhatsApp Number (India)', placeholder: '9820000000', required: true, type: 'tel', pattern: '[6-9][0-9]{9}', maxLength: 10 },
+                  { name: 'email', label: 'Email Address', placeholder: 'owner@gmail.com', required: true, type: 'email' },
+                ].map(({ name, label, placeholder, required, type, pattern, maxLength }) => (
                   <div key={name}>
                     <label className="mb-1.5 block text-xs font-semibold text-foreground">{label}</label>
                     <input
@@ -230,11 +243,16 @@ export default function ListCafe() {
                       value={(form as Record<string, string>)[name]}
                       onChange={handleChange}
                       required={required}
+                      type={type || 'text'}
+                      pattern={pattern}
+                      maxLength={maxLength}
+                      inputMode={type === 'tel' ? 'numeric' : undefined}
                       placeholder={placeholder}
                       className="w-full rounded-xl border border-border/60 bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-[oklch(0.45_0.08_265)] focus:outline-none focus:ring-1 focus:ring-[oklch(0.45_0.08_265/0.4)]"
                     />
                   </div>
                 ))}
+                {formError && <p className="rounded-xl border border-[oklch(0.55_0.16_25/0.5)] bg-[oklch(0.20_0.05_25/0.25)] px-3 py-2 text-xs text-[oklch(0.78_0.14_25)]">{formError}</p>}
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold text-foreground">Tell us about your cafe</label>
                   <textarea
