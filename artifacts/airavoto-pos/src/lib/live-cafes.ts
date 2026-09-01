@@ -277,7 +277,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     })),
     reviews: [],
     games: displayStrings(metadata.games),
-    foodItems: (snapshot.configurations?.foodItems ?? snapshot.configurations?.food_items ?? [])
+    foodItems: (snapshot.configurations?.foodItems ?? snapshot.configurations?.food_items ?? metadata.foodItems ?? metadata.food_items ?? [])
       .filter((item: unknown) => typeof item === 'string' || (item && typeof item === 'object'))
       .map((item: any) => typeof item === 'string' ? { name: item } : {
         name: item.name,
