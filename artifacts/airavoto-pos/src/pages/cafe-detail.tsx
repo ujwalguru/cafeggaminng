@@ -173,6 +173,7 @@ export default function CafeDetail() {
   const hasConsole = cafe?.categories.includes('Console') ?? false;
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
+  const otherLiveDevices = liveSnapshot?.devices.filter((device) => device.type !== 'PC' && device.type !== 'PS5') ?? [];
   const pcTotal    = livePc?.total ?? (hasConsole ? Math.round((cafe?.totalSeats ?? 0) * 0.65) : (cafe?.totalSeats ?? 0));
   const ps5Total   = livePs5?.total ?? (hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0);
   const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
@@ -224,7 +225,7 @@ export default function CafeDetail() {
           {isLive ? 'Updated live' : liveError ? 'Live data unavailable' : 'Waiting for POS'}
         </span>
       </div>
-      <div className={`grid gap-3 ${hasConsole ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className={`grid gap-3 ${hasConsole || otherLiveDevices.length > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
       <button
         onClick={() => setStationModal('PC')}
         className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
@@ -270,6 +271,25 @@ export default function CafeDetail() {
           <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
         </button>
       )}
+      {otherLiveDevices.map((device) => (
+        <div key={device.type} className="rounded-2xl border border-border/60 bg-card p-4 text-left">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+              <Headphones className="size-4" />
+            </span>
+            <span className={`text-[10px] font-semibold uppercase tracking-wide ${device.available > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+              {device.available > 0 ? 'Available' : 'Full'}
+            </span>
+          </div>
+          <p className="text-xs font-semibold text-muted-foreground">{device.type}</p>
+          <p className="mt-0.5 text-2xl font-extrabold text-foreground">
+            {device.available}<span className="text-sm font-normal text-muted-foreground">/{device.total}</span>
+          </p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+            <div className="h-full rounded-full transition-all" style={{ width: device.total > 0 ? `${(device.available / device.total) * 100}%` : '0%', background: device.available > 0 ? 'oklch(0.72 0.18 150)' : 'oklch(0.60 0.18 25)' }} />
+          </div>
+        </div>
+      ))}
       </div>
     </div>
   );
