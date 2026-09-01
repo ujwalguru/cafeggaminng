@@ -74,11 +74,16 @@ export default function CafeDetail() {
   const [stationModal, setStationModal] = useState<StationType | null>(null);
   const [liveSnapshot, setLiveSnapshot] = useState<LiveCafeSnapshot | null>(null);
   const [liveError, setLiveError] = useState(false);
+  const [liveLoading, setLiveLoading] = useState(!staticCafe);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      if (!slug) return;
+      if (!slug) {
+        if (!cancelled) setLiveLoading(false);
+        return;
+      }
+      if (!staticCafe && !cancelled) setLiveLoading(true);
       try {
         const snapshot = await fetchLiveCafe(slug);
         if (!cancelled) {
@@ -87,6 +92,8 @@ export default function CafeDetail() {
         }
       } catch {
         if (!cancelled) setLiveError(true);
+      } finally {
+        if (!cancelled) setLiveLoading(false);
       }
     };
     load();
@@ -118,6 +125,22 @@ export default function CafeDetail() {
     description: cafe?.tagline ?? '',
     image: cafe?.image,
   });
+
+  if (!cafe && liveLoading) {
+    return (
+      <main className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <section className="mx-auto flex min-h-[60vh] max-w-3xl items-center justify-center px-5 py-24 text-center">
+          <div>
+            <div className="mx-auto mb-5 size-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+            <h1 className="text-2xl font-bold">Loading café availability</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Connecting to the live Airavoto café server…</p>
+          </div>
+        </section>
+        <Footer />
+      </main>
+    );
+  }
 
   if (!cafe) return <NotFound />;
 

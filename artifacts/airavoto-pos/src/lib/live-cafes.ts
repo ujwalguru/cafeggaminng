@@ -61,6 +61,21 @@ function inferDeviceType(device: any): string {
   return normalizeType(device?.type ?? device?.category ?? device?.name);
 }
 
+function displayStrings(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') {
+        const record = item as Record<string, unknown>;
+        return String(record.name ?? record.label ?? record.title ?? record.category ?? '');
+      }
+      return String(item ?? '');
+    })
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function normalizeSeat(seat: any, index: number): LiveSeat {
   const available = seat?.available === true || String(seat?.status || '').toLowerCase() === 'available';
   return {
@@ -134,8 +149,8 @@ export async function fetchLiveCafe(slug: string): Promise<LiveCafeSnapshot | nu
 export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
   const totalSeats = snapshot.devices.reduce((total, device) => total + device.total, 0);
   const availableSeats = snapshot.devices.reduce((total, device) => total + device.available, 0);
-  const pricing = snapshot.configurations?.pricing ?? [];
-  const pricePerHour = Number(pricing.find((item) => Number(item.duration) === 60)?.price ?? pricing[0]?.price ?? 0);
+  const pricing = Array.isArray(snapshot.configurations?.pricing) ? snapshot.configurations.pricing : [];
+  const pricePerHour = Number(pricing.find((item) => Number(item.duration) === 60 && Number(item.price) > 0)?.price ?? pricing.find((item) => Number(item.price) > 0)?.price ?? 0);
   const metadata = snapshot.metadata || {};
   return {
     id: snapshot.slug,
@@ -152,9 +167,9 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     openUntil: String(metadata.openUntil ?? metadata.open_until ?? ''),
     hoursDisplay: String(metadata.hoursDisplay ?? metadata.hours_display ?? 'Live status'),
     image: String(metadata.image ?? 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=900&q=80&auto=format&fit=crop'),
-    gallery: Array.isArray(metadata.gallery) ? metadata.gallery : [],
+    gallery: displayStrings(metadata.gallery),
     categories: snapshot.categories,
-    amenities: Array.isArray(metadata.amenities) ? metadata.amenities : [],
+    amenities: displayStrings(metadata.amenities),
     totalSeats,
     availableSeats,
     about: String(metadata.about ?? 'Check live PC and PS5 availability before you visit.'),
@@ -163,6 +178,6 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     maps: String(metadata.maps ?? 'https://maps.google.com'),
     plans: pricing.map((item: any) => ({ name: String(item.category ?? 'Gaming session'), duration: String(item.duration ?? ''), price: Number(item.price ?? 0) })),
     reviews: [],
-    games: Array.isArray(metadata.games) ? metadata.games : [],
+    games: displayStrings(metadata.games),
   };
 }
