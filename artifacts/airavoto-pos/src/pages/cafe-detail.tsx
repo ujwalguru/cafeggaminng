@@ -402,13 +402,14 @@ export default function CafeDetail() {
             <section>
               <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Games Available</h2>
               <div className="flex flex-wrap gap-2">
-                {cafe.games.map((game) => (
+                {(cafe.gameTags?.length ? cafe.gameTags : cafe.games.map((name) => ({ name, platform: 'Game' }))).map((game) => (
                   <span
-                    key={game}
+                    key={`${game.platform}-${game.name}`}
                     className="flex items-center gap-1.5 rounded-full border border-[oklch(0.40_0.12_265/0.5)] bg-[oklch(0.22_0.06_265/0.35)] px-3 py-1.5 text-xs font-medium text-[oklch(0.85_0.10_265)]"
                   >
                     <Gamepad2 className="size-3 shrink-0 opacity-70" />
-                    {game}
+                    {game.name}
+                    <span className="rounded bg-black/30 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{game.platform}</span>
                   </span>
                 ))}
               </div>

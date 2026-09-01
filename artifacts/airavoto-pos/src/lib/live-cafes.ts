@@ -80,6 +80,20 @@ function displayStrings(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function normalizeGameTags(value: unknown): { name: string; platform: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item: any) => {
+    if (typeof item === 'string') return { name: item.trim(), platform: 'Game' };
+    const name = String(item?.name ?? item?.title ?? item?.gameName ?? '').trim();
+    const rawPlatform = String(item?.platform ?? item?.category ?? item?.deviceType ?? 'Game').trim();
+    const upper = rawPlatform.toUpperCase();
+    const platform = upper.includes('PS5') || upper.includes('PLAYSTATION') || upper.includes('CONSOLE') ? 'PS5'
+      : upper.includes('PC') || upper.includes('COMPUTER') ? 'PC'
+        : upper.includes('VR') ? 'VR' : rawPlatform || 'Game';
+    return { name, platform };
+  }).filter((item) => item.name);
+}
+
 function normalizeHours(value: unknown): { day: string; time: string }[] {
   if (Array.isArray(value)) {
     return value
@@ -278,6 +292,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     })),
     reviews: [],
     games: displayStrings(metadata.games),
+    gameTags: normalizeGameTags(metadata.games),
     foodItems: (snapshot.configurations?.foodItems ?? snapshot.configurations?.food_items ?? metadata.foodItems ?? metadata.food_items ?? [])
       .filter((item: unknown) => typeof item === 'string' || (item && typeof item === 'object'))
       .map((item: any) => typeof item === 'string' ? { name: item } : {
