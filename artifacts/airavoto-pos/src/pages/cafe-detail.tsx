@@ -167,6 +167,9 @@ export default function CafeDetail() {
   }, [slug]);
 
   const cafe = liveSnapshot ? liveSnapshotToCafe(liveSnapshot) : undefined;
+  const displayFoodItems = cafe?.foodItems?.length
+    ? cafe.foodItems
+    : ((liveSnapshot?.metadata?.foodItems ?? liveSnapshot?.metadata?.food_items ?? []) as Array<{ name?: string; title?: string; itemName?: string; price?: number | string; category?: string }>);
   const hasConsole = cafe?.categories.includes('Console') ?? false;
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
@@ -370,11 +373,11 @@ export default function CafeDetail() {
             </section>
 
             {/* Food menu — placed near the top so live POS items are easy to find */}
-            {cafe.foodItems && cafe.foodItems.length > 0 && (
+            {displayFoodItems.length > 0 && (
               <section className="border-y border-border/60 py-6 sm:py-8">
                 <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Food Menu</h2>
                 <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
-                  {cafe.foodItems.map((item, index) => (
+                  {displayFoodItems.map((item, index) => (
                     <div key={`${item.name || item.title || item.itemName || 'item'}-${index}`} className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-[0_4px_16px_oklch(0_0_0/0.18)]">
                       <div className="min-w-0">
                         <div className="truncate text-sm font-semibold text-foreground">{item.name || item.title || item.itemName || 'Menu item'}</div>
