@@ -73,6 +73,7 @@ export interface Cafe {
   plans: CafePlan[];
   reviews: CafeReview[];
   games: string[];
+  foodItems?: Array<{ name?: string; title?: string; itemName?: string; price?: number | string; category?: string }>;
   featured?: boolean;
 }
 

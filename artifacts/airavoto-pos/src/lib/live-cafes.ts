@@ -37,6 +37,8 @@ export interface LiveCafeSnapshot {
     happy_hours?: Array<Record<string, unknown>>;
     happyHoursPricing?: Array<Record<string, unknown>>;
     happy_hours_pricing?: Array<Record<string, unknown>>;
+    foodItems?: Array<Record<string, unknown> | string>;
+    food_items?: Array<Record<string, unknown> | string>;
   };
 }
 
@@ -275,5 +277,14 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     })),
     reviews: [],
     games: displayStrings(metadata.games),
+    foodItems: (snapshot.configurations?.foodItems ?? snapshot.configurations?.food_items ?? [])
+      .filter((item: unknown) => typeof item === 'string' || (item && typeof item === 'object'))
+      .map((item: any) => typeof item === 'string' ? { name: item } : {
+        name: item.name,
+        title: item.title,
+        itemName: item.itemName,
+        price: item.price,
+        category: item.category,
+      }),
   };
 }
