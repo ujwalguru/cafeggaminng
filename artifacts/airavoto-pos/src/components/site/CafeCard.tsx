@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { MapPin, Star, Monitor, Gamepad2, Headphones, Smartphone } from 'lucide-react';
 import type { Cafe, GameCategory } from '@/lib/cafes';
+import { getLiveDevice, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 const CATEGORY_ICON: Record<GameCategory, React.ElementType> = {
   PC: Monitor,
@@ -11,7 +12,10 @@ const CATEGORY_ICON: Record<GameCategory, React.ElementType> = {
 
 const TOP_AMENITIES = ['AC', 'High-Speed WiFi', 'Full Food Menu', 'Food Menu', 'Snack Bar', 'Tournaments', 'Live Streaming Setup', 'Private Rooms'];
 
-export function CafeCard({ cafe }: { cafe: Cafe }) {
+export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }) {
+  const livePc = getLiveDevice(live ?? null, 'PC');
+  const livePs5 = getLiveDevice(live ?? null, 'PS5');
+  const hasLiveData = live?.status === 'online' && !live.is_stale && Boolean(livePc || livePs5);
   // Take up to 3 amenities to show as chips; count overflow
   const chips = cafe.amenities.filter((a) => TOP_AMENITIES.includes(a)).slice(0, 3);
   const overflow = cafe.amenities.length - chips.length;
@@ -94,8 +98,15 @@ export function CafeCard({ cafe }: { cafe: Cafe }) {
             <span className="font-semibold text-foreground">
               From <span className="text-[14px]">₹{cafe.pricePerHour}</span>/hr
             </span>
-            <span className="text-muted-foreground">
-              {cafe.totalSeats} seats · {cafe.hoursDisplay}
+            <span className="text-right text-muted-foreground">
+              {hasLiveData ? (
+                <>
+                  <span className="block font-medium text-[oklch(0.72_0.18_150)]">{(livePc?.available ?? 0) + (livePs5?.available ?? 0)} available</span>
+                  <span className="block text-[10px]">{livePc ? `PC ${livePc.available}/${livePc.total}` : ''}{livePc && livePs5 ? ' · ' : ''}{livePs5 ? `PS5 ${livePs5.available}/${livePs5.total}` : ''}</span>
+                </>
+              ) : (
+                <>{cafe.totalSeats} seats · {cafe.hoursDisplay}</>
+              )}
             </span>
           </div>
         </div>

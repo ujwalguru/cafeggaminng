@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
 import { SlidersHorizontal, X, ChevronDown, Star, ArrowLeft } from 'lucide-react';
 import { Link } from 'wouter';
@@ -7,6 +7,7 @@ import { CafeCard } from '@/components/site/CafeCard';
 import { Footer } from '@/components/site/Footer';
 import { cafes, CITIES, CATEGORIES, type GameCategory } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
+import { fetchLiveCafes, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 type SortKey = 'rating' | 'price_asc' | 'price_desc' | 'reviews';
 
@@ -41,6 +42,35 @@ export default function CafesPage() {
   const [openOnly, setOpenOnly] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [liveSnapshots, setLiveSnapshots] = useState<LiveCafeSnapshot[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const snapshots = await fetchLiveCafes();
+        if (!cancelled) setLiveSnapshots(snapshots);
+      } catch {
+        // Static café content remains usable if the live bridge is unavailable.
+      }
+    };
+    load();
+    const interval = window.setInterval(load, 15_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const liveBySlug = useMemo(() => new Map(liveSnapshots.map((snapshot) => [snapshot.slug, snapshot])), [liveSnapshots]);
+  const liveCatalog = useMemo(() => liveSnapshots.map(liveSnapshotToCafe), [liveSnapshots]);
+  const catalog = useMemo(() => {
+    const bySlug = new Map(cafes.map((cafe) => [cafe.slug, cafe]));
+    for (const liveCafe of liveCatalog) {
+      if (!bySlug.has(liveCafe.slug)) bySlug.set(liveCafe.slug, liveCafe);
+    }
+    return Array.from(bySlug.values());
+  }, [liveCatalog]);
 
   // Sync URL params whenever they change externally (back button, etc.)
   useEffect(() => {
@@ -51,7 +81,7 @@ export default function CafesPage() {
   }, [location]);
 
   const results = useMemo(() => {
-    let list = cafes.filter((c) => {
+    let list = catalog.filter((c) => {
       const q = query.toLowerCase().trim();
       const matchQ = !q || c.name.toLowerCase().includes(q) || c.city.toLowerCase().includes(q) || c.area.toLowerCase().includes(q);
       const matchCity = !city || c.city === city;
@@ -69,7 +99,7 @@ export default function CafesPage() {
     });
 
     return list;
-  }, [query, city, category, openOnly, sort]);
+  }, [query, city, category, openOnly, sort, catalog]);
 
   function clearFilter(key: 'query' | 'city' | 'category' | 'openOnly') {
     if (key === 'query') setQuery('');
@@ -271,7 +301,7 @@ export default function CafesPage() {
             {results.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2">
                 {results.map((cafe) => (
-                  <CafeCard key={cafe.id} cafe={cafe} />
+                  <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />
                 ))}
               </div>
             ) : (

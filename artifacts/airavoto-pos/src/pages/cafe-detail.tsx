@@ -13,6 +13,7 @@ import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
+import { fetchLiveCafe, getLiveDevice, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = 'PC' | 'PS5';
@@ -71,18 +72,45 @@ export default function CafeDetail() {
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
   const [stationModal, setStationModal] = useState<StationType | null>(null);
+  const [liveSnapshot, setLiveSnapshot] = useState<LiveCafeSnapshot | null>(null);
+  const [liveError, setLiveError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!slug) return;
+      try {
+        const snapshot = await fetchLiveCafe(slug);
+        if (!cancelled) {
+          setLiveSnapshot(snapshot);
+          setLiveError(false);
+        }
+      } catch {
+        if (!cancelled) setLiveError(true);
+      }
+    };
+    load();
+    const interval = window.setInterval(load, 15_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [slug]);
 
   const hasConsole = cafe?.categories.includes('Console') ?? false;
-  const pcTotal    = hasConsole ? Math.round((cafe?.totalSeats ?? 0) * 0.65) : (cafe?.totalSeats ?? 0);
-  const ps5Total   = hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0;
-  const pcAvail    = hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0);
-  const ps5Avail   = hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0;
+  const livePc = getLiveDevice(liveSnapshot, 'PC');
+  const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
+  const pcTotal    = livePc?.total ?? (hasConsole ? Math.round((cafe?.totalSeats ?? 0) * 0.65) : (cafe?.totalSeats ?? 0));
+  const ps5Total   = livePs5?.total ?? (hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0);
+  const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
+  const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
-  const pcStations  = buildStations('PC',  pcTotal,  pcAvail,  seed);
-  const ps5Stations = buildStations('PS5', ps5Total, ps5Avail, seed + 50);
+  const pcStations  = livePc?.seats.length ? livePc.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null })) : buildStations('PC', pcTotal, pcAvail, seed);
+  const ps5Stations = livePs5?.seats.length ? livePs5.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null })) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const modalStations = stationModal === 'PC' ? pcStations : ps5Stations;
   const modalAvail    = stationModal === 'PC' ? pcAvail    : ps5Avail;
   const modalTotal    = stationModal === 'PC' ? pcTotal    : ps5Total;
+  const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -98,7 +126,15 @@ export default function CafeDetail() {
 
   // ── Reusable sub-components ────────────────────────────────────────────────
   const StationBoxes = () => (
-    <div className={`grid gap-3 ${hasConsole ? 'grid-cols-2' : 'grid-cols-1'}`}>
+    <div>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Live availability</p>
+        <span className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide ${isLive ? 'text-[oklch(0.72_0.18_150)]' : 'text-muted-foreground'}`}>
+          <span className={`size-1.5 rounded-full ${isLive ? 'bg-[oklch(0.72_0.18_150)] animate-pulse' : 'bg-muted-foreground'}`} />
+          {isLive ? 'Updated live' : liveError ? 'Live data unavailable' : 'Waiting for POS'}
+        </span>
+      </div>
+      <div className={`grid gap-3 ${hasConsole ? 'grid-cols-2' : 'grid-cols-1'}`}>
       <button
         onClick={() => setStationModal('PC')}
         className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
@@ -144,6 +180,7 @@ export default function CafeDetail() {
           <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
         </button>
       )}
+      </div>
     </div>
   );
 

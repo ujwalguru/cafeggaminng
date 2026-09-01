@@ -168,7 +168,7 @@ export const cafes: Cafe[] = [
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80&auto=format&fit=crop',
     ],
     categories: ['PC', 'Mobile'],
-    amenities: ['AC', 'High-Speed WiFi', 'Snacks', 'Cold Drinks', 'Tournaments'],
+    amenities: ['AC', 'High-Speed WiFi', 'Snack Bar', 'Cold Drinks', 'Tournaments'],
     totalSeats: 35,
     availableSeats: 11,
     about: 'NeonBit is Delhi\'s original gaming café, now fully modernised. Affordable rates, consistently fast internet, and central location in Connaught Place make it the default choice for gamers across the NCR.',
