@@ -6,7 +6,7 @@ import {
 import { CafeCard } from '@/components/site/CafeCard';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
-import { getTopRated, CITIES } from '@/lib/cafes';
+import { CITIES } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import { fetchLiveCafes, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
@@ -44,6 +44,7 @@ export default function Home() {
   const [locationQ, setLocationQ] = useState('');
   const [deviceQ, setDeviceQ] = useState('');
   const [liveSnapshots, setLiveSnapshots] = useState<LiveCafeSnapshot[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,7 +53,9 @@ export default function Home() {
         const snapshots = await fetchLiveCafes();
         if (!cancelled) setLiveSnapshots(snapshots);
       } catch {
-        // Keep the static catalog as a graceful fallback while the live bridge is unavailable.
+        // The public catalog intentionally stays empty when the live service is unavailable.
+      } finally {
+        if (!cancelled) setLiveLoading(false);
       }
     };
     load();
@@ -64,7 +67,7 @@ export default function Home() {
   }, []);
 
   const liveBySlug = useMemo(() => new Map(liveSnapshots.map((snapshot) => [snapshot.slug, snapshot])), [liveSnapshots]);
-  const allCafes = useMemo(() => liveSnapshots.length > 0 ? liveSnapshots.map(liveSnapshotToCafe) : getTopRated(6), [liveSnapshots]);
+  const allCafes = useMemo(() => liveSnapshots.map(liveSnapshotToCafe), [liveSnapshots]);
   const featured = allCafes.slice(0, 3);    // Top-rated near you
   const favourites = allCafes.slice(3, 6);  // Gamers' favourites
   const cityCounts = useMemo(() => allCafes.reduce((counts, cafe) => {
@@ -107,7 +110,7 @@ export default function Home() {
           {/* Badge */}
           <span className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-surface px-4 py-1.5 text-[12px] text-muted-foreground">
             <span className="size-1.5 rounded-full bg-[oklch(0.72_0.18_150)]" />
-            15+ gaming cafes across India
+            {liveLoading ? 'Connecting to live cafés…' : `${liveSnapshots.length} live gaming café${liveSnapshots.length === 1 ? '' : 's'}`}
           </span>
 
           {/* Heading — 3 fading lines */}
@@ -188,13 +191,19 @@ export default function Home() {
             View all <ArrowRight className="size-4" />
           </Link>
         </div>
-        <div className="grid gap-5 sm:grid-cols-3">
-          {featured.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />)}
-        </div>
+        {liveLoading ? (
+          <p className="rounded-2xl border border-border/50 bg-card p-8 text-center text-sm text-muted-foreground">Loading live cafés…</p>
+        ) : featured.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-3">
+            {featured.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />)}
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-border/50 bg-card p-8 text-center text-sm text-muted-foreground">No cafés are online right now.</p>
+        )}
       </section>
 
       {/* ── HIGHEST RATED — Gamers' favourites ─────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 pb-20">
+      {favourites.length > 0 && <section className="mx-auto max-w-6xl px-5 pb-20">
         <div className="mb-7 flex items-end justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Highest Rated</p>
@@ -207,7 +216,7 @@ export default function Home() {
         <div className="grid gap-5 sm:grid-cols-3">
           {favourites.map((cafe) => <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />)}
         </div>
-      </section>
+      </section>}
 
       {/* ── HOW IT WORKS ───────────────────────────────────────────── */}
       <section className="py-20">

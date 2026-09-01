@@ -5,7 +5,7 @@ import { Link } from 'wouter';
 import { SearchBar } from '@/components/site/SearchBar';
 import { CafeCard } from '@/components/site/CafeCard';
 import { Footer } from '@/components/site/Footer';
-import { cafes, CITIES, CATEGORIES, type GameCategory } from '@/lib/cafes';
+import { CITIES, CATEGORIES, type GameCategory } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import { fetchLiveCafes, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 
@@ -43,6 +43,7 @@ export default function CafesPage() {
   const [sortOpen, setSortOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [liveSnapshots, setLiveSnapshots] = useState<LiveCafeSnapshot[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +52,9 @@ export default function CafesPage() {
         const snapshots = await fetchLiveCafes();
         if (!cancelled) setLiveSnapshots(snapshots);
       } catch {
-        // Static café content remains usable if the live bridge is unavailable.
+        // The public catalog intentionally stays empty when the live service is unavailable.
+      } finally {
+        if (!cancelled) setLiveLoading(false);
       }
     };
     load();
@@ -64,13 +67,7 @@ export default function CafesPage() {
 
   const liveBySlug = useMemo(() => new Map(liveSnapshots.map((snapshot) => [snapshot.slug, snapshot])), [liveSnapshots]);
   const liveCatalog = useMemo(() => liveSnapshots.map(liveSnapshotToCafe), [liveSnapshots]);
-  const catalog = useMemo(() => {
-    const bySlug = new Map(cafes.map((cafe) => [cafe.slug, cafe]));
-    for (const liveCafe of liveCatalog) {
-      if (!bySlug.has(liveCafe.slug)) bySlug.set(liveCafe.slug, liveCafe);
-    }
-    return Array.from(bySlug.values());
-  }, [liveCatalog]);
+  const catalog = liveCatalog;
 
   // Sync URL params whenever they change externally (back button, etc.)
   useEffect(() => {
@@ -298,7 +295,12 @@ export default function CafesPage() {
 
           {/* Results grid */}
           <div className="min-w-0 flex-1">
-            {results.length > 0 ? (
+            {liveLoading ? (
+              <div className="flex flex-col items-center gap-4 rounded-3xl border border-border/60 bg-card py-24 text-center">
+                <span className="size-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+                <p className="text-sm text-muted-foreground">Loading live cafés…</p>
+              </div>
+            ) : results.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2">
                 {results.map((cafe) => (
                   <CafeCard key={cafe.id} cafe={cafe} live={liveBySlug.get(cafe.slug)} />

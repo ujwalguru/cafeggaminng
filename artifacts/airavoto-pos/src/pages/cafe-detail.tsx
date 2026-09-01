@@ -6,9 +6,7 @@ import {
   Wind, UtensilsCrossed, Headphones, Zap, Trophy, Shield, Monitor,
   ChevronRight, ExternalLink, MessageCircle, Gamepad2, X
 } from 'lucide-react';
-import { getCafeBySlug } from '@/lib/cafes';
 import { CafeCard } from '@/components/site/CafeCard';
-import { cafes } from '@/lib/cafes';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
@@ -67,14 +65,13 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }
 
 export default function CafeDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const staticCafe = getCafeBySlug(slug);
 
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
   const [stationModal, setStationModal] = useState<StationType | null>(null);
   const [liveSnapshot, setLiveSnapshot] = useState<LiveCafeSnapshot | null>(null);
   const [liveError, setLiveError] = useState(false);
-  const [liveLoading, setLiveLoading] = useState(!staticCafe);
+  const [liveLoading, setLiveLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,7 +80,7 @@ export default function CafeDetail() {
         if (!cancelled) setLiveLoading(false);
         return;
       }
-      if (!staticCafe && !cancelled) setLiveLoading(true);
+      if (!cancelled) setLiveLoading(true);
       try {
         const snapshot = await fetchLiveCafe(slug);
         if (!cancelled) {
@@ -104,7 +101,7 @@ export default function CafeDetail() {
     };
   }, [slug]);
 
-  const cafe = staticCafe ?? (liveSnapshot ? liveSnapshotToCafe(liveSnapshot) : undefined);
+  const cafe = liveSnapshot ? liveSnapshotToCafe(liveSnapshot) : undefined;
   const hasConsole = cafe?.categories.includes('Console') ?? false;
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
@@ -144,9 +141,7 @@ export default function CafeDetail() {
 
   if (!cafe) return <NotFound />;
 
-  const related = cafes
-    .filter((c) => c.id !== cafe.id && (c.city === cafe.city || c.categories.some((cat) => cafe.categories.includes(cat))))
-    .slice(0, 4);
+  const related = [];
 
   // ── Reusable sub-components ────────────────────────────────────────────────
   const StationBoxes = () => (

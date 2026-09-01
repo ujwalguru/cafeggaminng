@@ -15,7 +15,7 @@ The Vercel deployment is a static frontend. The frontend now calls `${VITE_AIRAV
 
 ## Frontend behavior
 
-The Café Gaming listings page and café detail page refresh the live snapshot every 15 seconds. The detail page uses the Airavoto `availability` array for PC and PS5 totals and uses the nested `seats`/`seatAvailability` values for the station modal. If no live snapshot exists or the heartbeat is older than three minutes, the UI shows the static catalog values on cards and marks the detail availability as waiting/offline instead of presenting stale numbers as current.
+The Café Gaming homepage, listings page, and café detail page refresh the live snapshot every 15 seconds. Public catalog responses are filtered to `status: online` and `is_stale: false`, so cafés marked offline, suspended, or stale are hidden. There is no static café fallback in public results. The detail page uses the Airavoto `availability` array for PC and PS5 totals and uses the nested `seats`/`seatAvailability` values for the station modal. If the live service is unavailable, public pages show an empty/loading state rather than presenting hard-coded café data as current.
 
 New cafés that Airavoto registers are also included in the Café Gaming listings automatically when their live snapshot contains a name and slug.
 

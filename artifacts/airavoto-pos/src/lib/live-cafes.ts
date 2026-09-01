@@ -120,8 +120,10 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
         const devices = Array.isArray(listing.availability) ? listing.availability.map(normalizeDevice) : [];
         const categories = Array.from(new Set(
           (Array.isArray(metadata.categories) ? metadata.categories : [])
-            .concat(devices.map((device: LiveDeviceAvailability) => device.type)),
-        )).map(normalizeCategory).filter(Boolean) as GameCategory[];
+            .concat(devices.map((device: LiveDeviceAvailability) => device.type))
+            .map(normalizeCategory)
+            .filter(Boolean),
+        )) as GameCategory[];
         return {
           slug: String(listing.slug ?? listing.cafe_slug ?? metadata.id ?? ''),
           name: String(metadata.name ?? listing.cafe_name ?? listing.slug ?? 'Gaming café'),
@@ -137,7 +139,7 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
           devices,
           configurations: listing.configurations,
         };
-      })
+      }).filter((snapshot: LiveCafeSnapshot) => snapshot.status === 'online' && !snapshot.is_stale)
     : [];
 }
 
