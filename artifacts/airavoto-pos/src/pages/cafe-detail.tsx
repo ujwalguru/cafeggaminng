@@ -71,7 +71,8 @@ const STEAM_APP_IDS: Record<string, string> = {
   'apex legends': '1172470', 'tekken 8': '1778820', 'god of war': '1593500', 'beat saber': '620980',
   'warzone': '1962663', 'call of duty: warzone': '1962663', 'rocket league': '252950', 'forza horizon 5': '1551360',
   'elden ring': '1245620', 'pubg': '578080', 'pubg: battlegrounds': '578080', 'dota 2': '570',
-  'overwatch 2': '2357570', 'cyberpunk 2077': '1091500', 'resident evil 4': '2050650',
+  'overwatch 2': '2357570', 'cyberpunk 2077': '1091500', 'resident evil 4': '2050650', 'spider-man 2': '2651280',
+  'marvels spider-man 2': '2651280', 'marvel’s spider-man 2': '2651280', 'marvels spider man 2': '2651280',
 };
 
 function steamPosterUrl(name: string) {
