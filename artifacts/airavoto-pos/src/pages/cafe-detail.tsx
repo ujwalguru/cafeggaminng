@@ -81,6 +81,26 @@ function steamPosterUrl(name: string) {
 
 const SINGLE_PLAYER_GAMES = new Set(['god of war', 'gta v', 'the witcher 3', 'elden ring', 'resident evil 4', 'cyberpunk 2077', 'hogwarts legacy', 'spider-man 2']);
 
+function GameArtwork({ name }: { name: string }) {
+  const [imageUrl, setImageUrl] = useState(steamPosterUrl(name));
+  const [fallbackTried, setFallbackTried] = useState(false);
+  useEffect(() => {
+    if (imageUrl || fallbackTried) return;
+    setFallbackTried(true);
+    const controller = new AbortController();
+    fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(`${name} video game`)}&gsrnamespace=0&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=300&format=json&origin=*`, { signal: controller.signal })
+      .then((response) => response.json())
+      .then((data) => {
+        const page = Object.values(data?.query?.pages ?? {})[0] as { thumbnail?: { source?: string } } | undefined;
+        if (page?.thumbnail?.source) setImageUrl(page.thumbnail.source);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [name, imageUrl, fallbackTried]);
+  if (!imageUrl) return null;
+  return <img src={imageUrl} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-110" onError={() => { setImageUrl(null); }} />;
+}
+
 function sameCategory(left: string, right: string) {
   const normalizedLeft = left.trim().toLowerCase();
   const normalizedRight = right.trim().toLowerCase();
@@ -469,7 +489,7 @@ export default function CafeDetail() {
                     key={`${game.platform}-${game.name}`}
                     className="group relative flex min-h-[76px] min-w-[220px] snap-start items-center gap-3 overflow-hidden rounded-2xl border border-border/60 bg-card px-3 py-2 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md sm:min-w-[260px] sm:px-4"
                   >
-                    <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/30 bg-primary/10 text-primary shadow-inner sm:size-16"><Gamepad2 className="size-6" />{steamPosterUrl(game.name) ? <img src={steamPosterUrl(game.name) ?? undefined} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-110" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}</div>
+                    <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/30 bg-primary/10 text-primary shadow-inner sm:size-16"><Gamepad2 className="size-6" /><GameArtwork name={game.name} /></div>
                     <div className="min-w-0"><div className="truncate text-sm font-bold text-foreground sm:text-base">{game.name}</div><div className="mt-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Gamepad2 className="size-3" />{game.platform}</div></div>
                   </div>
                 ))}
