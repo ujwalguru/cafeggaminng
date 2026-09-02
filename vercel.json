@@ -40,5 +40,11 @@
       ]
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/api/live-cafes",
+      "destination": "https://airavotoheadcli.onrender.com/api/directory"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

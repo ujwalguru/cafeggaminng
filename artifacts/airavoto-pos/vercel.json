@@ -4,6 +4,10 @@
   "installCommand": "cd ../.. && pnpm install",
   "framework": null,
   "rewrites": [
+    {
+      "source": "/api/live-cafes",
+      "destination": "https://airavotoheadcli.onrender.com/api/directory"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
