@@ -169,7 +169,7 @@ export default function CafeDetail() {
   const [ratingOpen, setRatingOpen] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
-  const [gameTab, setGameTab] = useState<'PC' | 'PS5' | 'Single Player'>('PC');
+  const [gameTab, setGameTab] = useState('PC');
 
   useEffect(() => {
     let cancelled = false;
@@ -228,11 +228,18 @@ export default function CafeDetail() {
   const hasHappyHourData = happyHours.length > 0 || happyHourPricing.length > 0;
   const openingHours = expandOpeningHours(cafe?.hours ?? []);
   const allGames = cafe?.gameTags?.length ? cafe.gameTags : (cafe?.games ?? []).map((name) => ({ name, platform: 'PC' }));
-  const filteredGames = allGames.filter((game) => {
+  const preferredCategoryOrder = ['PC', 'PC Gaming', 'PS5', 'Console Gaming', 'Single Player', 'Multiplayer'];
+  const detectedGameCategories = Array.from(new Set(allGames.map((game) => game.platform.trim()).filter(Boolean))).sort((left, right) => {
+    const leftIndex = preferredCategoryOrder.findIndex((item) => left.toLowerCase().includes(item.toLowerCase()));
+    const rightIndex = preferredCategoryOrder.findIndex((item) => right.toLowerCase().includes(item.toLowerCase()));
+    return (leftIndex < 0 ? 100 : leftIndex) - (rightIndex < 0 ? 100 : rightIndex) || left.localeCompare(right);
+  });
+  const gameCategories = detectedGameCategories.length ? detectedGameCategories : ['All'];
+  const activeGameTab = gameCategories.includes(gameTab) ? gameTab : (gameCategories[0] || 'All');
+  const filteredGames = activeGameTab === 'All' ? allGames : allGames.filter((game) => {
     const platform = game.platform.toLowerCase();
-    if (gameTab === 'PC') return platform.includes('pc') || platform === 'game';
-    if (gameTab === 'PS5') return platform.includes('ps5') || platform.includes('playstation') || platform.includes('console');
-    return platform.includes('single') || SINGLE_PLAYER_GAMES.has(game.name.toLowerCase());
+    const selected = activeGameTab.toLowerCase();
+    return platform === selected || platform.includes(selected) || (selected.includes('pc') && platform === 'game') || (selected.includes('single') && SINGLE_PLAYER_GAMES.has(game.name.toLowerCase()));
   });
   const gamesForTab = filteredGames.length ? filteredGames : allGames;
 
@@ -449,19 +456,25 @@ export default function CafeDetail() {
             {/* Games */}
             <section>
               <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4"><div><h2 className="text-base font-bold sm:text-lg">Games Available</h2><p className="mt-1 text-xs text-muted-foreground">Choose your next session</p></div><span className="rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{cafe.games.length} titles</span></div>
-              <div className="mb-4 flex gap-2 overflow-x-auto rounded-2xl border border-border/60 bg-muted/20 p-1.5">
-                {(['PC', 'PS5', 'Single Player'] as const).map((tab) => <button key={tab} type="button" onClick={() => setGameTab(tab)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition-all ${gameTab === tab ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>{tab}</button>)}
+              <div className="relative mb-4">
+                <div className="flex gap-2 overflow-x-auto rounded-2xl border border-border/60 bg-muted/20 p-1.5 pr-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {gameCategories.map((tab) => <button key={tab} type="button" onClick={() => setGameTab(tab)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition-all ${activeGameTab === tab ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>{tab}</button>)}
+                </div>
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-12 rounded-r-2xl bg-gradient-to-l from-background via-background/70 to-transparent" />
               </div>
-              <div className="space-y-2.5">
+              <div className="relative">
+              <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 pr-10 [scrollbar-color:theme(colors.primary.DEFAULT)_transparent]">
                 {gamesForTab.map((game) => (
                   <div
                     key={`${game.platform}-${game.name}`}
-                    className="group relative flex min-h-[76px] items-center gap-3 overflow-hidden rounded-2xl border border-border/60 bg-card px-3 py-2 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md sm:px-4"
+                    className="group relative flex min-h-[76px] min-w-[220px] snap-start items-center gap-3 overflow-hidden rounded-2xl border border-border/60 bg-card px-3 py-2 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md sm:min-w-[260px] sm:px-4"
                   >
                     <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/30 bg-primary/10 text-primary shadow-inner sm:size-16"><Gamepad2 className="size-6" />{steamPosterUrl(game.name) ? <img src={steamPosterUrl(game.name) ?? undefined} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-110" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}</div>
                     <div className="min-w-0"><div className="truncate text-sm font-bold text-foreground sm:text-base">{game.name}</div><div className="mt-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Gamepad2 className="size-3" />{game.platform}</div></div>
                   </div>
                 ))}
+              </div>
+              <div className="pointer-events-none absolute right-0 top-0 h-full w-14 rounded-r-2xl bg-gradient-to-l from-background via-background/75 to-transparent" />
               </div>
             </section>
 
