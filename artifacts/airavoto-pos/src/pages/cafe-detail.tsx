@@ -84,7 +84,7 @@ const STEAM_APP_IDS: Record<string, string> = {
   'fallout 4': '377160', 'terraria': '105600', 'stardew valley': '413150', 'hades': '1145360',
   'hades ii': '1145350', 'palworld': '1623730', 'sons of the forest': '1326470', 'rust': '252490',
   'dayz': '221100', 'project zomboid': '108600', 'ark: survival evolved': '346110', '7 days to die': '251570',
-  'dead by daylight': '381210', 'left 4 dead 2': '550', 'world war z': '699130', 'payday 2': '218620',
+  'dead by daylight': '381210', 'left 4 dead 2': '550', 'world war z': '699130', 'world war 3': '674940', 'payday 2': '218620',
   'rainbow six siege': '359550', 'tom clancy\'s rainbow six siege': '359550', 'the finals': '2073850',
   'destiny 2': '1085660', 'halo infinite': '1240440', 'battlefield 2042': '1517290', 'battlefield v': '1238810',
   'pubg mobile': '578080', 'fall guys': '1097150', 'among us': '945360',
