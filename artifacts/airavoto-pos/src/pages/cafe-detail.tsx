@@ -66,6 +66,19 @@ function expandOpeningHours(rows: Array<{ day: string; time: string }>) {
   return rows;
 }
 
+const STEAM_APP_IDS: Record<string, string> = {
+  'cs2': '730', 'counter-strike 2': '730', 'gta v': '271590', 'grand theft auto v': '271590',
+  'apex legends': '1172470', 'tekken 8': '1778820', 'god of war': '1593500', 'beat saber': '620980',
+  'warzone': '1962663', 'call of duty: warzone': '1962663', 'rocket league': '252950', 'forza horizon 5': '1551360',
+  'elden ring': '1245620', 'pubg': '578080', 'pubg: battlegrounds': '578080', 'dota 2': '570',
+  'overwatch 2': '2357570', 'cyberpunk 2077': '1091500', 'resident evil 4': '2050650',
+};
+
+function steamPosterUrl(name: string) {
+  const id = STEAM_APP_IDS[name.trim().toLowerCase()];
+  return id ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/library_600x900_2x.jpg` : null;
+}
+
 function sameCategory(left: string, right: string) {
   const normalizedLeft = left.trim().toLowerCase();
   const normalizedRight = right.trim().toLowerCase();
@@ -424,17 +437,17 @@ export default function CafeDetail() {
 
             {/* Games */}
             <section>
-              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Games Available</h2>
-              <div className="flex flex-wrap gap-2">
+              <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4"><div><h2 className="text-base font-bold sm:text-lg">Games Available</h2><p className="mt-1 text-xs text-muted-foreground">Choose your next session</p></div><span className="rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{cafe.games.length} titles</span></div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {(cafe.gameTags?.length ? cafe.gameTags : cafe.games.map((name) => ({ name, platform: 'Game' }))).map((game) => (
-                  <span
+                  <div
                     key={`${game.platform}-${game.name}`}
-                    className="flex items-center gap-1.5 rounded-full border border-[oklch(0.40_0.12_265/0.5)] bg-[oklch(0.22_0.06_265/0.35)] px-3 py-1.5 text-xs font-medium text-[oklch(0.85_0.10_265)]"
+                    className="group relative min-h-36 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg"
                   >
-                    <Gamepad2 className="size-3 shrink-0 opacity-70" />
-                    {game.name}
-                    <span className="rounded bg-black/30 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{game.platform}</span>
-                  </span>
+                    {steamPosterUrl(game.name) ? <img src={steamPosterUrl(game.name) ?? undefined} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105 group-hover:opacity-90" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
+                    <div className="relative flex min-h-36 flex-col justify-end p-3"><span className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-white/65"><Gamepad2 className="size-3" />{game.platform}</span><span className="text-sm font-bold leading-tight text-white">{game.name}</span></div>
+                  </div>
                 ))}
               </div>
             </section>
