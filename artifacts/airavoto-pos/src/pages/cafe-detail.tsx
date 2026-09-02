@@ -79,6 +79,8 @@ function steamPosterUrl(name: string) {
   return id ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/library_600x900_2x.jpg` : null;
 }
 
+const SINGLE_PLAYER_GAMES = new Set(['god of war', 'gta v', 'the witcher 3', 'elden ring', 'resident evil 4', 'cyberpunk 2077', 'hogwarts legacy', 'spider-man 2']);
+
 function sameCategory(left: string, right: string) {
   const normalizedLeft = left.trim().toLowerCase();
   const normalizedRight = right.trim().toLowerCase();
@@ -167,6 +169,7 @@ export default function CafeDetail() {
   const [ratingOpen, setRatingOpen] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
+  const [gameTab, setGameTab] = useState<'PC' | 'PS5' | 'Single Player'>('PC');
 
   useEffect(() => {
     let cancelled = false;
@@ -224,6 +227,14 @@ export default function CafeDetail() {
   const happyHourPricing = cafe?.happyHourPricing ?? [];
   const hasHappyHourData = happyHours.length > 0 || happyHourPricing.length > 0;
   const openingHours = expandOpeningHours(cafe?.hours ?? []);
+  const allGames = cafe?.gameTags?.length ? cafe.gameTags : (cafe?.games ?? []).map((name) => ({ name, platform: 'PC' }));
+  const filteredGames = allGames.filter((game) => {
+    const platform = game.platform.toLowerCase();
+    if (gameTab === 'PC') return platform.includes('pc') || platform === 'game';
+    if (gameTab === 'PS5') return platform.includes('ps5') || platform.includes('playstation') || platform.includes('console');
+    return platform.includes('single') || SINGLE_PLAYER_GAMES.has(game.name.toLowerCase());
+  });
+  const gamesForTab = filteredGames.length ? filteredGames : allGames;
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -438,15 +449,17 @@ export default function CafeDetail() {
             {/* Games */}
             <section>
               <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4"><div><h2 className="text-base font-bold sm:text-lg">Games Available</h2><p className="mt-1 text-xs text-muted-foreground">Choose your next session</p></div><span className="rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{cafe.games.length} titles</span></div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {(cafe.gameTags?.length ? cafe.gameTags : cafe.games.map((name) => ({ name, platform: 'Game' }))).map((game) => (
+              <div className="mb-4 flex gap-2 overflow-x-auto rounded-2xl border border-border/60 bg-muted/20 p-1.5">
+                {(['PC', 'PS5', 'Single Player'] as const).map((tab) => <button key={tab} type="button" onClick={() => setGameTab(tab)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition-all ${gameTab === tab ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>{tab}</button>)}
+              </div>
+              <div className="space-y-2.5">
+                {gamesForTab.map((game) => (
                   <div
                     key={`${game.platform}-${game.name}`}
-                    className="group relative min-h-36 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg"
+                    className="group relative flex min-h-[76px] items-center gap-3 overflow-hidden rounded-2xl border border-border/60 bg-card px-3 py-2 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md sm:px-4"
                   >
-                    {steamPosterUrl(game.name) ? <img src={steamPosterUrl(game.name) ?? undefined} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105 group-hover:opacity-90" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
-                    <div className="relative flex min-h-36 flex-col justify-end p-3"><span className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-white/65"><Gamepad2 className="size-3" />{game.platform}</span><span className="text-sm font-bold leading-tight text-white">{game.name}</span></div>
+                    <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/30 bg-primary/10 text-primary shadow-inner sm:size-16"><Gamepad2 className="size-6" />{steamPosterUrl(game.name) ? <img src={steamPosterUrl(game.name) ?? undefined} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-110" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}</div>
+                    <div className="min-w-0"><div className="truncate text-sm font-bold text-foreground sm:text-base">{game.name}</div><div className="mt-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Gamepad2 className="size-3" />{game.platform}</div></div>
                   </div>
                 ))}
               </div>
