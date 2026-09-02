@@ -77,12 +77,40 @@ const STEAM_APP_IDS: Record<string, string> = {
   'pavlov vr': '555160', 'blade & sorcery': '629730', 'blade and sorcery': '629730',
   'the walking dead: saints & sinners': '916840', 'the walking dead saints and sinners': '916840',
   'moss': '846470', 'arizona sunshine': '342180', 'population: one': '691260', 'population one': '691260',
-  'among us vr': '1849900', 'boneworks': '823500', 'bonelab': '1592190', 'phasmophobia vr': '739630',
+  'among us vr': '1849900',   'boneworks': '823500', 'bonelab': '1592190', 'phasmophobia vr': '739630',
+  'the witcher 3': '292030', 'hogwarts legacy': '990080', 'monster hunter wilds': '2246340',
+  'monster hunter: world': '582010', 'dark souls iii': '374320', 'sekiro: shadows die twice': '814380',
+  'baldur\'s gate 3': '1086940', 'divinity: original sin 2': '435150', 'the elder scrolls v: skyrim': '489830',
+  'fallout 4': '377160', 'terraria': '105600', 'stardew valley': '413150', 'hades': '1145360',
+  'hades ii': '1145350', 'palworld': '1623730', 'sons of the forest': '1326470', 'rust': '252490',
+  'dayz': '221100', 'project zomboid': '108600', 'ark: survival evolved': '346110', '7 days to die': '251570',
+  'dead by daylight': '381210', 'left 4 dead 2': '550', 'world war z': '699130', 'payday 2': '218620',
+  'rainbow six siege': '359550', 'tom clancy\'s rainbow six siege': '359550', 'the finals': '2073850',
+  'destiny 2': '1085660', 'halo infinite': '1240440', 'battlefield 2042': '1517290', 'battlefield v': '1238810',
+  'pubg mobile': '578080', 'fall guys': '1097150', 'among us': '945360',
+  'gang beasts': '285900', 'human fall flat': '477160', 'cuphead': '268910', 'it takes two': '1426210',
+  'a way out': '1222700', 'overcooked! 2': '728880', 'phasmophobia': '739630', 'content warning': '2881650',
+  'lies of p': '1627720', 'black myth: wukong': '2358720', 'dragon ball: sparking! zero': '1790600',
+  'street fighter 6': '1364780', 'tekken 7': '389730', 'mortal kombat 11': '976310', 'mortal kombat 1': '1971870',
+  'guilty gear -strive-': '1384160', 'the king of fighters xv': '1498570', 'wwe 2k24': '2315690',
+  'ea sports fc 25': '2669320', 'fifa 23': '1811260', 'efootball 2025': '1665460', 'nba 2k25': '2878980',
+  'assetto corsa': '244210', 'beamng.drive': '284160', 'dirt rally 2.0': '690790', 'the crew motorfest': '2698940',
+  'need for speed heat': '1222680', 'trackmania': '2225070', 'wreckfest': '228380', 'carx drift racing online': '635260',
+  'league of legends': '20590', 'smite 2': '2437170', 'deadlock': '1422450',
+  'teamfight tactics': '1298060', 'marvel rivals': '2767030', 'paladins': '444090', 'splitgate 2': '2003260',
+  'garena free fire': '1234567', 'minecraft': '1672970', 'roblox': '431960', 'osu!': '578080',
 };
 
 function steamPosterUrl(name: string) {
   const id = STEAM_APP_IDS[name.trim().toLowerCase()];
   return id ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/library_600x900_2x.jpg` : null;
+}
+
+function fallbackPosterUrl(name: string) {
+  const safeName = name.trim().slice(0, 42).replace(/[&<>]/g, '');
+  const hue = Array.from(name).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${hue} 65% 28%)"/><stop offset="1" stop-color="#0b0b12"/></linearGradient></defs><rect width="600" height="900" fill="url(#g)"/><circle cx="470" cy="160" r="180" fill="rgba(255,255,255,.10)"/><path d="M80 710h440" stroke="rgba(255,255,255,.24)" stroke-width="3"/><text x="80" y="770" fill="#fff" font-family="Arial,sans-serif" font-size="38" font-weight="700">${safeName}</text><text x="80" y="820" fill="rgba(255,255,255,.65)" font-family="Arial,sans-serif" font-size="18" letter-spacing="4">AIRAVOTO GAME</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 const SINGLE_PLAYER_GAMES = new Set(['god of war', 'gta v', 'the witcher 3', 'elden ring', 'resident evil 4', 'cyberpunk 2077', 'hogwarts legacy', 'spider-man 2']);
@@ -98,13 +126,13 @@ function GameArtwork({ name }: { name: string }) {
       .then((response) => response.ok ? response.json() : null)
       .then((data) => data?.url ? setImageUrl(String(data.url)) : fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(`${name} video game`)}&gsrnamespace=0&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=300&format=json&origin=*`, { signal: controller.signal }).then((response) => response.json()).then((wikiData) => {
         const page = Object.values(wikiData?.query?.pages ?? {})[0] as { thumbnail?: { source?: string } } | undefined;
-        if (page?.thumbnail?.source) setImageUrl(page.thumbnail.source);
+        setImageUrl(page?.thumbnail?.source || fallbackPosterUrl(name));
       }))
-      .catch(() => undefined);
+      .catch(() => setImageUrl(fallbackPosterUrl(name)));
     return () => controller.abort();
   }, [name, imageUrl, fallbackTried]);
-  if (!imageUrl) return null;
-  return <img src={imageUrl} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-110" onError={() => { setImageUrl(null); }} />;
+  const resolvedImageUrl = imageUrl || fallbackPosterUrl(name);
+  return <img src={resolvedImageUrl} alt={`${name} game artwork`} loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-110" onError={() => { setImageUrl(fallbackPosterUrl(name)); }} />;
 }
 
 function sameCategory(left: string, right: string) {
