@@ -52,6 +52,20 @@ function formatDuration(minutes: number) {
   return `${minutes} min`;
 }
 
+function expandOpeningHours(rows: Array<{ day: string; time: string }>) {
+  if (rows.length !== 1) return rows;
+  const row = rows[0];
+  const match = row.time.match(/^(.+?):\s*(.+?)\s*\|\s*Sunday:\s*(.+)$/i);
+  if (match) {
+    const days = match[1].split(',').map((day) => day.trim()).filter(Boolean);
+    return [...days.map((day) => ({ day, time: match[2] })), { day: 'Sunday', time: match[3] }];
+  }
+  if (/every\s*day|everyday/i.test(row.day)) {
+    return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => ({ day, time: row.time }));
+  }
+  return rows;
+}
+
 function sameCategory(left: string, right: string) {
   const normalizedLeft = left.trim().toLowerCase();
   const normalizedRight = right.trim().toLowerCase();
@@ -196,6 +210,7 @@ export default function CafeDetail() {
   const happyHours = cafe?.happyHours ?? [];
   const happyHourPricing = cafe?.happyHourPricing ?? [];
   const hasHappyHourData = happyHours.length > 0 || happyHourPricing.length > 0;
+  const openingHours = expandOpeningHours(cafe?.hours ?? []);
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -555,15 +570,18 @@ export default function CafeDetail() {
 
             {/* Hours */}
             <section>
-              <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Opening Hours</h2>
-              <div className="overflow-hidden rounded-2xl border border-border/60">
-                {cafe.hours.length > 0 ? cafe.hours.map(({ day, time }, i) => (
+              <div className="mb-3 flex items-center gap-2 sm:mb-4">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.78_0.16_60/0.14)] text-[oklch(0.84_0.15_60)]"><Clock className="size-4" /></div>
+                <div><h2 className="text-base font-bold sm:text-lg">Opening Hours</h2><p className="text-xs text-muted-foreground">Plan your next gaming session</p></div>
+              </div>
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/40 shadow-[0_12px_35px_oklch(0.12_0.04_280/0.18)]">
+                {openingHours.length > 0 ? openingHours.map(({ day, time }, i) => (
                   <div
                     key={day}
-                    className={`flex items-center justify-between px-4 py-3 text-sm sm:px-5 sm:py-3.5 ${i !== 0 ? 'border-t border-border/40' : ''}`}
+                    className={`group flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-primary/5 sm:px-5 sm:py-3.5 ${i !== 0 ? 'border-t border-border/40' : ''}`}
                   >
-                    <span className="font-medium text-foreground">{day}</span>
-                    <span className="text-muted-foreground">{time}</span>
+                    <span className="flex items-center gap-2.5 font-medium text-foreground"><span className="size-1.5 rounded-full bg-[oklch(0.78_0.16_60)] opacity-70 transition-opacity group-hover:opacity-100" />{day}</span>
+                    <span className="rounded-full bg-muted/60 px-3 py-1 text-right text-xs font-semibold text-foreground sm:text-sm">{time}</span>
                   </div>
                 )) : (
                   <div className="px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-3.5">Hours not available</div>
