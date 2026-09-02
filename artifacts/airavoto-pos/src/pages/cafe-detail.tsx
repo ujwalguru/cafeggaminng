@@ -88,12 +88,12 @@ function GameArtwork({ name }: { name: string }) {
     if (imageUrl || fallbackTried) return;
     setFallbackTried(true);
     const controller = new AbortController();
-    fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(`${name} video game`)}&gsrnamespace=0&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=300&format=json&origin=*`, { signal: controller.signal })
-      .then((response) => response.json())
-      .then((data) => {
-        const page = Object.values(data?.query?.pages ?? {})[0] as { thumbnail?: { source?: string } } | undefined;
+    fetch(`https://airavotoheadcli.onrender.com/api/directory/game-image?name=${encodeURIComponent(name)}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => data?.url ? setImageUrl(String(data.url)) : fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(`${name} video game`)}&gsrnamespace=0&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=300&format=json&origin=*`, { signal: controller.signal }).then((response) => response.json()).then((wikiData) => {
+        const page = Object.values(wikiData?.query?.pages ?? {})[0] as { thumbnail?: { source?: string } } | undefined;
         if (page?.thumbnail?.source) setImageUrl(page.thumbnail.source);
-      })
+      }))
       .catch(() => undefined);
     return () => controller.abort();
   }, [name, imageUrl, fallbackTried]);
