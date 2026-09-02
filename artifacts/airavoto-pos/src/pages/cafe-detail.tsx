@@ -73,6 +73,11 @@ const STEAM_APP_IDS: Record<string, string> = {
   'elden ring': '1245620', 'pubg': '578080', 'pubg: battlegrounds': '578080', 'dota 2': '570',
   'overwatch 2': '2357570', 'cyberpunk 2077': '1091500', 'resident evil 4': '2050650', 'spider-man 2': '2651280',
   'marvels spider-man 2': '2651280', 'marvel’s spider-man 2': '2651280', 'marvels spider man 2': '2651280',
+  'half-life: alyx': '546560', 'half life alyx': '546560', 'superhot vr': '617830', 'job simulator': '448280',
+  'pavlov vr': '555160', 'blade & sorcery': '629730', 'blade and sorcery': '629730',
+  'the walking dead: saints & sinners': '916840', 'the walking dead saints and sinners': '916840',
+  'moss': '846470', 'arizona sunshine': '342180', 'population: one': '691260', 'population one': '691260',
+  'among us vr': '1849900', 'boneworks': '823500', 'bonelab': '1592190', 'phasmophobia vr': '739630',
 };
 
 function steamPosterUrl(name: string) {
