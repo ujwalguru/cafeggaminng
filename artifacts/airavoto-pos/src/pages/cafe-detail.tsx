@@ -101,8 +101,14 @@ const STEAM_APP_IDS: Record<string, string> = {
   'garena free fire': '1234567', 'minecraft': '1672970', 'roblox': '431960', 'osu!': '578080',
 };
 
+const LOCAL_GAME_ARTWORK: Record<string, string> = {
+  valorant: '/valorant-game-art.png',
+};
+
 function steamPosterUrl(name: string) {
-  const id = STEAM_APP_IDS[name.trim().toLowerCase()];
+  const normalizedName = name.trim().toLowerCase();
+  if (LOCAL_GAME_ARTWORK[normalizedName]) return LOCAL_GAME_ARTWORK[normalizedName];
+  const id = STEAM_APP_IDS[normalizedName];
   return id ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/library_600x900_2x.jpg` : null;
 }
 
