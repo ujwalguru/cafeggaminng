@@ -483,7 +483,7 @@ export default function CafeDetail() {
                 <span className={`size-1.5 rounded-full ${cafe.isOpen ? 'bg-[oklch(0.72_0.18_150)]' : 'bg-[oklch(0.60_0.18_25)]'}`} />
                 {cafe.isOpen ? `Open · ${cafe.openUntil}` : cafe.openUntil}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="hidden flex items-center gap-1.5">
                 <StarRow rating={cafe.rating} size="lg" />
                 <span className="text-sm font-bold sm:text-xl">{cafe.rating}</span>
                 <span className="text-[10px] text-white/70 sm:text-sm">({cafe.reviewCount})</span>
@@ -703,7 +703,7 @@ export default function CafeDetail() {
             </section>
 
             {/* Reviews */}
-            <section>
+            <section className="hidden">
               <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
                 <h2 className="text-base font-bold sm:text-lg">Reviews</h2>
                 <button onClick={() => { setRatingSubmitted(false); setSelectedRating(0); setRatingOpen(true); }} className="rounded-full border border-[oklch(0.45_0.12_60/0.6)] bg-[oklch(0.24_0.08_60/0.25)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.88_0.13_60)] transition-colors hover:bg-[oklch(0.28_0.10_60/0.4)]">
