@@ -782,23 +782,23 @@ export default function CafeDetail() {
       {/* ── Mobile sticky booking bar ─────────────────────────── */}
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/60 bg-[oklch(0.11_0_0/0.97)] px-4 py-3 backdrop-blur-xl lg:hidden">
         <div className="flex items-center gap-3">
+          <Link
+            href="/cafes"
+            className="flex shrink-0 flex-col items-center gap-1 rounded-xl border border-border px-3 py-2 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Back to cafes"
+          >
+            <ArrowLeft className="size-4" />
+            Back
+          </Link>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] text-muted-foreground">Starting from</p>
             <p className={`text-lg font-extrabold leading-tight text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
           </div>
           <a
-            href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <MessageCircle className="size-4" />
-          </a>
-          <a
             href={`tel:${cafe.phone}`}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
-            <Phone className="size-4" /> Call to Book
+            <Phone className="size-4" /> Contact
           </a>
         </div>
       </div>
