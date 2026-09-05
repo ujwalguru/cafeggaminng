@@ -448,6 +448,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
       plansByCategory.set(item.category, item);
   }
   const metadata = snapshot.metadata || {};
+  const gallery = displayStrings(metadata.gallery);
   const normalizedHours = normalizeHours(
     metadata.hours ?? metadata.openingHours ?? metadata.opening_hours,
   );
@@ -471,8 +472,8 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
         normalizedHours[0]?.time ??
         "Live status",
     ),
-    image: String(metadata.image || DEFAULT_CAFE_IMAGE),
-    gallery: displayStrings(metadata.gallery),
+    image: String(metadata.image || gallery[0] || DEFAULT_CAFE_IMAGE),
+    gallery,
     categories: snapshot.categories,
     amenities: displayStrings(metadata.amenities) as Cafe["amenities"],
     totalSeats,
