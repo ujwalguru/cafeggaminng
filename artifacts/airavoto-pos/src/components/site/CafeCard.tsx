@@ -17,6 +17,7 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
   const livePs5 = getLiveDevice(live ?? null, 'PS5');
   const hasLiveData = live?.status === 'online' && !live.is_stale && Boolean(livePc || livePs5);
   const isOffline = live?.status === 'offline' || live?.is_stale;
+  const displayImage = cafe.gallery?.[0] || cafe.image || DEFAULT_CAFE_IMAGE;
   // Take up to 3 amenities to show as chips; count overflow
   const chips = cafe.amenities.filter((a) => TOP_AMENITIES.includes(a)).slice(0, 3);
   const overflow = cafe.amenities.length - chips.length;
@@ -38,7 +39,7 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
         {/* Image */}
         <div className="relative h-44 overflow-hidden">
           <img
-            src={cafe.image}
+            src={displayImage}
             alt={cafe.name}
             onError={(event) => {
               event.currentTarget.onerror = null;

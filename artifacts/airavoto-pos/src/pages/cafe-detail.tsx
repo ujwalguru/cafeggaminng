@@ -444,7 +444,7 @@ export default function CafeDetail() {
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
-        <img src={cafe.image} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
+        <img src={cafe.gallery?.[0] || cafe.image || DEFAULT_CAFE_IMAGE} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         {/* Back button — stays at the top on both mobile and desktop */}
         <Link
