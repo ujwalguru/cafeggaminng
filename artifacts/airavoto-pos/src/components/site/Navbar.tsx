@@ -1,10 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, Instagram, Facebook, Youtube } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Explore', to: '/cafes' },
   { label: 'Blog', to: '/blog' },
+];
+
+const SOCIAL_LINKS = [
+  { label: 'Instagram', href: 'https://www.instagram.com/', icon: Instagram },
+  { label: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook },
+  { label: 'YouTube', href: 'https://www.youtube.com/', icon: Youtube },
 ];
 
 export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
@@ -43,6 +49,13 @@ export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
             <div className="max-w-2xl overflow-hidden rounded-full border border-primary/30 bg-primary/10 px-5 py-2 text-xs font-bold uppercase tracking-wide text-primary">
               <div className="booking-marquee-track whitespace-nowrap">To book a seat, please contact the gaming café owner by phone or WhatsApp. &nbsp; • &nbsp; To book a seat, please contact the gaming café owner by phone or WhatsApp.</div>
             </div>
+            <div className="ml-2 flex items-center gap-1 border-l border-border/50 pl-2">
+              {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground">
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
           </div>
         ) : (
           <>
@@ -58,6 +71,13 @@ export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
             <nav className="ml-auto hidden items-center gap-1 md:flex">
               {NAV_LINKS.map((l) => <Link key={l.label} href={l.to} className="rounded-lg px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</Link>)}
               <Link href="/cafes" className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90">Find a Cafe</Link>
+              <div className="ml-2 flex items-center gap-1 border-l border-border/50 pl-2">
+                {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground">
+                    <Icon className="size-4" />
+                  </a>
+                ))}
+              </div>
             </nav>
           </>
         )}
@@ -113,6 +133,13 @@ export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
           >
             Find a Cafe
           </Link>
+          <div className="mt-4 flex items-center justify-center gap-2 border-t border-border/40 pt-4">
+            {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="flex size-10 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground">
+                <Icon className="size-4" />
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </header>

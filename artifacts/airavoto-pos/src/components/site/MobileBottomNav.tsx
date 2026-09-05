@@ -1,11 +1,10 @@
-import { Home, Search, Trophy, UserRound } from 'lucide-react';
+import { Home, Search, Trophy } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
 const NAV_ITEMS = [
   { label: 'Home', to: '/', icon: Home },
   { label: 'Explore', to: '/cafes', icon: Search },
   { label: 'Tournaments', to: '/tournaments', icon: Trophy },
-  { label: 'Account', to: '/signup', icon: UserRound },
 ];
 
 export function MobileBottomNav() {
@@ -17,7 +16,7 @@ export function MobileBottomNav() {
       className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 lg:hidden"
     >
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent" />
-      <div className="relative mx-auto grid max-w-md grid-cols-4 gap-1 overflow-hidden rounded-[1.6rem] border border-white/10 bg-[oklch(0.11_0_0/0.88)] p-1.5 shadow-[0_-12px_45px_oklch(0_0_0/0.45),0_8px_30px_oklch(0_0_0/0.25)] backdrop-blur-2xl">
+      <div className="relative mx-auto grid max-w-md grid-cols-3 gap-1 overflow-hidden rounded-[1.6rem] border border-white/10 bg-[oklch(0.11_0_0/0.88)] p-1.5 shadow-[0_-12px_45px_oklch(0_0_0/0.45),0_8px_30px_oklch(0_0_0/0.25)] backdrop-blur-2xl">
         {NAV_ITEMS.map(({ label, to, icon: Icon }) => {
           const active = to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`);
           return (
