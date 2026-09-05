@@ -87,7 +87,6 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
             </h3>
             <span className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[oklch(0.80_0.14_60)]">
               <Star className="size-3.5 fill-[oklch(0.80_0.14_60)]" />
-              {cafe.rating}
             </span>
           </div>
 
