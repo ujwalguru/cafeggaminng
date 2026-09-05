@@ -456,16 +456,6 @@ export default function CafeDetail() {
         </Link>
       </div>
 
-      {/* Booking notice — directly below the hero image */}
-      <div className="w-full overflow-hidden border-y border-primary/30 bg-primary/10 py-2.5 text-primary" role="note">
-        <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
-          <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-          <span aria-hidden="true">•</span>
-          <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-          <span aria-hidden="true">•</span>
-        </div>
-      </div>
-
       <div className="mx-auto max-w-5xl px-4 sm:px-5">
         {/* ── Info header ──────────────────────────────────────── */}
         <div className="relative z-10 -mt-14 mb-8 sm:-mt-16 sm:mb-10">
@@ -503,6 +493,16 @@ export default function CafeDetail() {
                 <span className="text-xs text-muted-foreground sm:text-sm">({cafe.reviewCount})</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Booking notice — below the cafe identity header */}
+        <div className="-mx-4 overflow-hidden border-y border-primary/30 bg-primary/10 py-2.5 text-primary sm:-mx-5" role="note">
+          <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
+            <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
+            <span aria-hidden="true">•</span>
+            <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
+            <span aria-hidden="true">•</span>
           </div>
         </div>
 
