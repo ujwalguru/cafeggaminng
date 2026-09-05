@@ -439,7 +439,7 @@ export default function CafeDetail() {
     <main className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
       {/* Navbar — hidden on mobile */}
       <div className="hidden lg:block">
-        <Navbar />
+        <Navbar cafePage />
       </div>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
@@ -493,16 +493,6 @@ export default function CafeDetail() {
                 <span className="text-xs text-muted-foreground sm:text-sm">({cafe.reviewCount})</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Booking notice — below the cafe identity header */}
-        <div className="-mx-4 overflow-hidden border-y border-primary/30 bg-primary/10 py-2.5 text-primary sm:-mx-5" role="note">
-          <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
-            <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-            <span aria-hidden="true">•</span>
-            <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-            <span aria-hidden="true">•</span>
           </div>
         </div>
 
@@ -792,6 +782,9 @@ export default function CafeDetail() {
       <Footer />
 
       {/* ── Mobile sticky booking bar ─────────────────────────── */}
+      <div className="fixed inset-x-0 bottom-[76px] z-[60] overflow-hidden border-y border-primary/30 bg-primary/10 py-1.5 text-primary lg:hidden" role="note">
+        <div className="booking-marquee-track whitespace-nowrap px-3 text-[10px] font-extrabold uppercase tracking-wide">To book a seat, please contact the gaming café owner by phone or WhatsApp. &nbsp; • &nbsp; To book a seat, please contact the gaming café owner by phone or WhatsApp.</div>
+      </div>
       <nav className="fixed inset-x-0 bottom-0 z-[60] border-t border-border/60 bg-[oklch(0.08_0_0/0.98)] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_oklch(0_0_0/0.35)] backdrop-blur-xl lg:hidden" aria-label="Café actions">
         <div className="grid grid-cols-[1fr_1fr_1fr] items-center gap-2">
           <div className="min-w-0 text-center">

@@ -7,7 +7,7 @@ const NAV_LINKS = [
   { label: 'Blog', to: '/blog' },
 ];
 
-export function Navbar() {
+export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
   const [pathname] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -38,49 +38,38 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Center search — desktop */}
-        <form
-          onSubmit={handleSearch}
-          className="mx-4 hidden flex-1 max-w-md md:flex"
-        >
-          <div className="flex w-full items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-2">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="City, area or cafe name..."
-              className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
+        {cafePage ? (
+          <div className="ml-auto hidden min-w-0 flex-1 items-center justify-end md:flex">
+            <div className="max-w-2xl overflow-hidden rounded-full border border-primary/30 bg-primary/10 px-5 py-2 text-xs font-bold uppercase tracking-wide text-primary">
+              <div className="booking-marquee-track whitespace-nowrap">To book a seat, please contact the gaming café owner by phone or WhatsApp. &nbsp; • &nbsp; To book a seat, please contact the gaming café owner by phone or WhatsApp.</div>
+            </div>
           </div>
-        </form>
+        ) : (
+          <>
+            {/* Center search — desktop */}
+            <form onSubmit={handleSearch} className="mx-4 hidden max-w-md flex-1 md:flex">
+              <div className="flex w-full items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-2">
+                <Search className="size-4 shrink-0 text-muted-foreground" />
+                <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="City, area or cafe name..." className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none" />
+              </div>
+            </form>
 
-        {/* Desktop nav links */}
-        <nav className="ml-auto hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((l) => (
-            <Link
-              key={l.label}
-              href={l.to}
-              className="rounded-lg px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {l.label}
-            </Link>
-          ))}
-          <Link
-            href="/cafes"
-            className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-          >
-            Find a Cafe
-          </Link>
-        </nav>
+            {/* Desktop nav links */}
+            <nav className="ml-auto hidden items-center gap-1 md:flex">
+              {NAV_LINKS.map((l) => <Link key={l.label} href={l.to} className="rounded-lg px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</Link>)}
+              <Link href="/cafes" className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90">Find a Cafe</Link>
+            </nav>
+          </>
+        )}
 
         {/* Mobile hamburger */}
-        <button
+        {!cafePage && <button
           onClick={() => setMobileOpen((v) => !v)}
           className="ml-auto flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground md:hidden"
           aria-label="Menu"
         >
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+        </button>}
       </div>
 
       {/* Mobile menu */}
