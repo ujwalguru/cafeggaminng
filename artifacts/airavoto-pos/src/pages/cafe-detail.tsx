@@ -456,16 +456,16 @@ export default function CafeDetail() {
         </Link>
 
         {/* Café identity overlay — same styling, repositioned inside hero */}
-        <div className="absolute inset-x-4 bottom-12 z-10 sm:inset-x-5 sm:bottom-14">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="absolute inset-x-3 bottom-12 z-10 sm:inset-x-5 sm:bottom-14">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">{cafe.name}</h1>
-              <p className="mt-0.5 text-xs text-white/75 sm:text-sm">{cafe.tagline}</p>
+              <h1 className="truncate whitespace-nowrap text-xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">{cafe.name}</h1>
+              <p className="mt-0.5 truncate text-xs text-white/75 sm:text-sm">{cafe.tagline}</p>
               <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 sm:mt-3 sm:text-sm">
                 <MapPin className="size-3.5 shrink-0" />
                 <span className="truncate">{cafe.address}</span>
               </div>
-              <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+              <div className="mt-2 flex max-h-7 flex-wrap gap-1.5 overflow-hidden sm:mt-3 sm:max-h-none sm:gap-2">
                 {cafe.categories.map((cat) => (
                   <span key={cat} className="rounded-full border border-white/25 bg-black/30 px-2.5 py-0.5 text-[11px] font-medium text-white/85 backdrop-blur-sm sm:px-3 sm:py-1 sm:text-xs">
                     {cat} Gaming
@@ -474,8 +474,8 @@ export default function CafeDetail() {
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col items-end gap-2 text-white">
-              <span className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm ${
+            <div className="flex shrink-0 flex-col items-end gap-1 text-white sm:gap-2">
+              <span className={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm ${
                 cafe.isOpen
                   ? 'bg-[oklch(0.20_0.06_150/0.8)] text-[oklch(0.78_0.18_150)]'
                   : 'bg-[oklch(0.20_0.06_25/0.8)] text-[oklch(0.72_0.18_25)]'
@@ -485,8 +485,8 @@ export default function CafeDetail() {
               </span>
               <div className="flex items-center gap-1.5">
                 <StarRow rating={cafe.rating} size="lg" />
-                <span className="text-base font-bold sm:text-xl">{cafe.rating}</span>
-                <span className="text-xs text-white/70 sm:text-sm">({cafe.reviewCount})</span>
+                <span className="text-sm font-bold sm:text-xl">{cafe.rating}</span>
+                <span className="text-[10px] text-white/70 sm:text-sm">({cafe.reviewCount})</span>
               </div>
             </div>
           </div>
