@@ -66,12 +66,6 @@ export function Navbar() {
             </Link>
           ))}
           <Link
-            href="/signup"
-            className="ml-2 rounded-full border border-border/60 px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface-2"
-          >
-            Sign Up
-          </Link>
-          <Link
             href="/cafes"
             className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
           >
@@ -124,12 +118,6 @@ export function Navbar() {
               </Link>
             </li>
           </ul>
-          <Link
-            href="/signup"
-            className="mt-3 flex w-full items-center justify-center rounded-full border border-border/60 py-3 text-sm font-semibold text-foreground"
-          >
-            Sign Up
-          </Link>
           <Link
             href="/cafes"
             className="mt-2 flex w-full items-center justify-center rounded-full bg-foreground py-3 text-sm font-semibold text-background"

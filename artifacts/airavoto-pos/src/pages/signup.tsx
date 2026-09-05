@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
@@ -9,6 +9,14 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [googleMessage, setGoogleMessage] = useState('');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('google_error');
+    if (error) setGoogleMessage(`Google sign-in failed: ${error}`);
+    if (params.get('google') === 'success') setGoogleMessage('Google sign-in successful. Your account is connected.');
+    if (error || params.get('google')) window.history.replaceState({}, document.title, window.location.pathname);
+  }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -21,12 +29,8 @@ export default function Signup() {
   }
 
   function handleGoogleSignIn() {
-    const authUrl = import.meta.env.VITE_GOOGLE_AUTH_URL;
-    if (authUrl) {
-      window.location.assign(authUrl);
-      return;
-    }
-    setGoogleMessage('Google sign-in will be available when authentication is connected.');
+    const apiUrl = (import.meta.env.VITE_API_URL || 'https://airavotoheadcli.onrender.com').replace(/\/$/, '');
+    window.location.assign(`${apiUrl}/api/auth/google?returnTo=${encodeURIComponent(`${window.location.origin}/signup`)}`);
   }
 
   return (
