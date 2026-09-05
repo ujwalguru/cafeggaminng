@@ -494,11 +494,15 @@ export default function CafeDetail() {
 
         {/* Booking marquee — across the bottom edge of the hero */}
         <div className="absolute inset-x-0 bottom-0 z-20 overflow-hidden border-y border-white/15 bg-black/75 py-2.5 text-primary shadow-[0_-10px_28px_rgba(0,0,0,0.75)] backdrop-blur-sm" role="note">
-          <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
-            <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-            <span aria-hidden="true">•</span>
-            <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-            <span aria-hidden="true">•</span>
+          <div className="booking-marquee-track flex items-center whitespace-nowrap text-xs font-extrabold uppercase tracking-wide sm:text-sm">
+            {[0, 1].map((copy) => (
+              <div key={copy} aria-hidden={copy === 1} className="booking-marquee-segment flex shrink-0 items-center gap-10 px-4">
+                <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
+                <span aria-hidden="true">•</span>
+                <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
+                <span aria-hidden="true">•</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
