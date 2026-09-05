@@ -454,41 +454,27 @@ export default function CafeDetail() {
           <ArrowLeft className="size-4" />
           <span className="hidden lg:inline">All Cafes</span>
         </Link>
-      </div>
 
-      {/* Booking notice — between the hero image and café content */}
-      <div className="w-full overflow-hidden border-y border-primary/30 bg-primary/10 py-2.5 text-primary" role="note">
-        <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
-          <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-          <span aria-hidden="true">•</span>
-          <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-          <span aria-hidden="true">•</span>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-5xl px-4 sm:px-5">
-        {/* ── Info header ──────────────────────────────────────── */}
-        <div className="relative z-10 -mt-14 mb-8 sm:-mt-16 sm:mb-10">
-          {/* Categories */}
-          <div className="mb-2 flex flex-wrap gap-1.5 sm:mb-3 sm:gap-2">
-            {cafe.categories.map((cat) => (
-              <span key={cat} className="rounded-full border border-border/60 bg-surface px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground sm:px-3 sm:py-1 sm:text-xs">
-                {cat} Gaming
-              </span>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">{cafe.name}</h1>
-              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{cafe.tagline}</p>
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground sm:mt-3 sm:text-sm">
+        {/* Café identity overlay — same styling, repositioned inside hero */}
+        <div className="absolute inset-x-4 bottom-12 z-10 sm:inset-x-5 sm:bottom-14">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">{cafe.name}</h1>
+              <p className="mt-0.5 text-xs text-white/75 sm:text-sm">{cafe.tagline}</p>
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 sm:mt-3 sm:text-sm">
                 <MapPin className="size-3.5 shrink-0" />
                 <span className="truncate">{cafe.address}</span>
               </div>
+              <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+                {cafe.categories.map((cat) => (
+                  <span key={cat} className="rounded-full border border-white/25 bg-black/30 px-2.5 py-0.5 text-[11px] font-medium text-white/85 backdrop-blur-sm sm:px-3 sm:py-1 sm:text-xs">
+                    {cat} Gaming
+                  </span>
+                ))}
+              </div>
             </div>
 
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex shrink-0 flex-col items-end gap-2 text-white">
               <span className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm ${
                 cafe.isOpen
                   ? 'bg-[oklch(0.20_0.06_150/0.8)] text-[oklch(0.78_0.18_150)]'
@@ -500,12 +486,24 @@ export default function CafeDetail() {
               <div className="flex items-center gap-1.5">
                 <StarRow rating={cafe.rating} size="lg" />
                 <span className="text-base font-bold sm:text-xl">{cafe.rating}</span>
-                <span className="text-xs text-muted-foreground sm:text-sm">({cafe.reviewCount})</span>
+                <span className="text-xs text-white/70 sm:text-sm">({cafe.reviewCount})</span>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Booking marquee — across the bottom edge of the hero */}
+        <div className="absolute inset-x-0 bottom-0 z-20 overflow-hidden border-y border-primary/30 bg-primary/10 py-2.5 text-primary" role="note">
+          <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
+            <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
+            <span aria-hidden="true">•</span>
+            <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
+            <span aria-hidden="true">•</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4 sm:px-5">
         {/* ── Main layout ───────────────────────────────────────── */}
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* ── Left content ────────────────────────────────────── */}
@@ -792,9 +790,6 @@ export default function CafeDetail() {
       <Footer />
 
       {/* ── Mobile sticky booking bar ─────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-[76px] z-[60] overflow-hidden border-y border-primary/30 bg-primary/10 py-1.5 text-primary lg:hidden" role="note">
-        <div className="booking-marquee-track whitespace-nowrap px-3 text-[10px] font-extrabold uppercase tracking-wide">To book a seat, please contact the gaming café owner by phone or WhatsApp. &nbsp; • &nbsp; To book a seat, please contact the gaming café owner by phone or WhatsApp.</div>
-      </div>
       <nav className="fixed inset-x-0 bottom-0 z-[60] border-t border-border/60 bg-[oklch(0.08_0_0/0.98)] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_oklch(0_0_0/0.35)] backdrop-blur-xl lg:hidden" aria-label="Café actions">
         <div className="grid grid-cols-[1fr_1fr_1fr] items-center gap-2">
           <div className="min-w-0 text-center">
