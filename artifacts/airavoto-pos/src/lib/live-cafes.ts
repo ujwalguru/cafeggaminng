@@ -275,7 +275,7 @@ function normalizeHappyHourPricing(value: unknown): CafeHappyHourPricing[] {
         duration: Number(record.duration ?? 0),
         price,
         personCount: Number(record.personCount ?? record.person_count ?? 1),
-        priceVisible: record.websiteVisible !== false,
+        priceVisible: record.websiteVisible !== false && record.website_visible !== false,
       };
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -430,7 +430,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
       ...item,
       category: String(item.category ?? "").trim(),
       price: Number(item.price ?? 0),
-      websiteVisible: item.websiteVisible !== false,
+      websiteVisible: item.websiteVisible !== false && item.website_visible !== false,
     }))
     .filter(
       (item) => item.category && Number.isFinite(item.price) && item.price > 0,
