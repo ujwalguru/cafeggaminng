@@ -233,6 +233,20 @@
   }
 }
 
+@keyframes booking-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.booking-marquee-track {
+  animation: booking-marquee 22s linear infinite;
+  width: max-content;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-marquee-track { animation: none; }
+}
+
 @theme {
   --animate-spotlight-pulse: spotlight-pulse 8s ease-in-out infinite;
   --animate-particle-drift: particle-drift 16s ease-in-out infinite alternate;
