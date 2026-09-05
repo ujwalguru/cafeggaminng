@@ -781,16 +781,22 @@ export default function CafeDetail() {
 
       {/* ── Mobile sticky booking bar ─────────────────────────── */}
       <nav className="fixed inset-x-0 bottom-0 z-[60] border-t border-border/60 bg-[oklch(0.08_0_0/0.98)] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_oklch(0_0_0/0.35)] backdrop-blur-xl lg:hidden" aria-label="Café actions">
-        <div className="grid grid-cols-[1fr_1.2fr] items-center gap-2">
+        <div className="grid grid-cols-[1fr_1fr_1fr] items-center gap-2">
           <div className="min-w-0 text-center">
             <p className="text-[10px] font-medium text-muted-foreground">Starting price</p>
             <p className={`truncate text-base font-extrabold leading-tight text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
           </div>
           <a
+            href={`tel:${cafe.phone}`}
+            className="flex min-h-12 items-center justify-center gap-1 rounded-xl border border-border px-1.5 py-2.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Phone className="size-4" /> Phone
+          </a>
+          <a
             href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl bg-primary px-2 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+            className="flex min-h-12 items-center justify-center gap-1 rounded-xl bg-primary px-1.5 py-2.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90"
           >
             <MessageCircle className="size-4" /> WhatsApp Contact
           </a>
