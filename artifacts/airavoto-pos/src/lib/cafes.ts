@@ -19,6 +19,7 @@ export interface CafePlan {
   duration: string;
   price: number;
   highlight?: boolean;
+  priceVisible?: boolean;
 }
 
 export interface CafeHappyHour {
@@ -33,6 +34,7 @@ export interface CafeHappyHourPricing {
   duration: number;
   price: number;
   personCount: number;
+  priceVisible?: boolean;
 }
 
 export interface CafeReview {
@@ -54,6 +56,7 @@ export interface Cafe {
   rating: number;
   reviewCount: number;
   pricePerHour: number;
+  priceVisible?: boolean;
   isOpen: boolean;
   openUntil: string;
   /** Short hours string shown on cards, e.g. "10:00–02:00" */

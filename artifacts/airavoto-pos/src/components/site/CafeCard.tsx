@@ -110,7 +110,7 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
           {/* Price + seats/hours */}
           <div className="flex items-center justify-between border-t border-border/40 pt-2.5 text-[12px]">
             <span className="font-semibold text-foreground">
-              From <span className="text-[14px]">₹{cafe.pricePerHour}</span>/hr
+              From <span className={cafe.priceVisible === false ? "text-[14px] blur-[5px] select-none" : "text-[14px]"}>₹{cafe.pricePerHour}</span>/hr
             </span>
             <span className="text-right text-muted-foreground">
               {hasLiveData ? (

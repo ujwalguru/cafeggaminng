@@ -609,7 +609,7 @@ export default function CafeDetail() {
                       <div className="text-sm font-bold text-foreground">{plan.name}</div>
                       <div className="mt-0.5 text-xs text-muted-foreground">{plan.duration}</div>
                     </div>
-                    <span className="text-xl font-extrabold text-foreground">₹{plan.price}</span>
+                    <span className={`text-xl font-extrabold text-foreground ${plan.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{plan.price}</span>
                   </div>
                 ))}
               </div>
@@ -654,7 +654,7 @@ export default function CafeDetail() {
                               </div>
                             )}
                           </div>
-                          <span className="text-xl font-extrabold text-foreground">₹{plan.price}</span>
+                          <span className={`text-xl font-extrabold text-foreground ${plan.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{plan.price}</span>
                         </div>
                       );
                     })}
@@ -733,7 +733,7 @@ export default function CafeDetail() {
               <div className="rounded-2xl border border-border/60 bg-card p-5">
                 <p className="text-xs text-muted-foreground">Starting from</p>
                 <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-foreground">₹{cafe.pricePerHour}</span>
+                  <span className={`text-3xl font-extrabold text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.pricePerHour}</span>
                   <span className="text-sm text-muted-foreground">/ hour</span>
                 </div>
                 <div className="mt-4 space-y-2">
@@ -784,7 +784,7 @@ export default function CafeDetail() {
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-[10px] text-muted-foreground">Starting from</p>
-            <p className="text-lg font-extrabold leading-tight text-foreground">₹{cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
+            <p className={`text-lg font-extrabold leading-tight text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
           </div>
           <a
             href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}

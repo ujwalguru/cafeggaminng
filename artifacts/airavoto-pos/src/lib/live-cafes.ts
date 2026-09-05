@@ -275,9 +275,10 @@ function normalizeHappyHourPricing(value: unknown): CafeHappyHourPricing[] {
         duration: Number(record.duration ?? 0),
         price,
         personCount: Number(record.personCount ?? record.person_count ?? 1),
+        priceVisible: record.websiteVisible !== false,
       };
     })
-    .filter((item): item is CafeHappyHourPricing => Boolean(item));
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 function normalizeSeat(seat: any, index: number): LiveSeat {
@@ -429,6 +430,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
       ...item,
       category: String(item.category ?? "").trim(),
       price: Number(item.price ?? 0),
+      websiteVisible: item.websiteVisible !== false,
     }))
     .filter(
       (item) => item.category && Number.isFinite(item.price) && item.price > 0,
@@ -437,6 +439,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     renderPricing.length > 0
       ? Math.min(...renderPricing.map((item) => item.price))
       : 0;
+  const priceVisible = renderPricing.every((item) => item.websiteVisible !== false);
   const plansByCategory = new Map<string, any>();
   for (const item of renderPricing) {
     // One public plan per Render category: prefer the lowest valid configured rate.
@@ -459,6 +462,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
     rating: Number(metadata.rating ?? 0),
     reviewCount: Number(metadata.reviewCount ?? metadata.review_count ?? 0),
     pricePerHour,
+    priceVisible,
     isOpen: snapshot.status === "online" && !snapshot.is_stale,
     openUntil: String(metadata.openUntil ?? metadata.open_until ?? ""),
     hoursDisplay: String(
@@ -499,6 +503,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
           ? "1 hr"
           : `${String(item.duration ?? "")} min`,
       price: Number(item.price),
+      priceVisible: item.websiteVisible !== false,
     })),
     reviews: [],
     games: displayStrings(metadata.games),
