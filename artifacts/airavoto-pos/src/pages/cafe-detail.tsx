@@ -458,23 +458,23 @@ export default function CafeDetail() {
         {/* Café identity overlay — same styling, repositioned inside hero */}
         <div className="absolute inset-x-3 bottom-12 z-10 sm:inset-x-5 sm:bottom-14">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate whitespace-nowrap text-xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">{cafe.name}</h1>
-              <p className="mt-0.5 truncate text-xs text-white/75 sm:text-sm">{cafe.tagline}</p>
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 sm:mt-3 sm:text-sm">
+            <div className="min-w-0 flex-1 text-shadow-[0_2px_5px_rgba(0,0,0,0.95)]">
+              <h1 className="truncate whitespace-nowrap text-xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] sm:text-3xl lg:text-4xl">{cafe.name}</h1>
+              <p className="mt-0.5 truncate text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:text-sm">{cafe.tagline}</p>
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:mt-3 sm:text-sm">
                 <MapPin className="size-3.5 shrink-0" />
                 <span className="truncate">{cafe.address}</span>
               </div>
               <div className="mt-2 flex max-h-7 flex-wrap gap-1.5 overflow-hidden sm:mt-3 sm:max-h-none sm:gap-2">
                 {cafe.categories.map((cat) => (
-                  <span key={cat} className="rounded-full border border-white/25 bg-black/30 px-2.5 py-0.5 text-[11px] font-medium text-white/85 backdrop-blur-sm sm:px-3 sm:py-1 sm:text-xs">
+                    <span key={cat} className="rounded-full border border-white/25 bg-black/30 px-2.5 py-0.5 text-[11px] font-medium text-white/85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] backdrop-blur-sm sm:px-3 sm:py-1 sm:text-xs">
                     {cat} Gaming
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col items-end gap-1 text-white sm:gap-2">
+            <div className="flex shrink-0 flex-col items-end gap-1 text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] sm:gap-2">
               <span className={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm ${
                 cafe.isOpen
                   ? 'bg-[oklch(0.20_0.06_150/0.8)] text-[oklch(0.78_0.18_150)]'
@@ -503,7 +503,7 @@ export default function CafeDetail() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-5">
+      <div className="mx-auto max-w-5xl px-3 sm:px-5">
         {/* ── Main layout ───────────────────────────────────────── */}
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* ── Left content ────────────────────────────────────── */}
