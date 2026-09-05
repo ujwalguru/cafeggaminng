@@ -68,7 +68,7 @@ export default function Home() {
 
   const liveBySlug = useMemo(() => new Map(liveSnapshots.map((snapshot) => [snapshot.slug, snapshot])), [liveSnapshots]);
   const allCafes = useMemo(() => liveSnapshots.map(liveSnapshotToCafe), [liveSnapshots]);
-  const featured = allCafes.slice(0, 3);    // Top-rated near you
+  const featured = allCafes.slice(0, 10);   // Show up to 10 cafés in the Home page section
   const favourites = allCafes.slice(3, 6);  // Gamers' favourites
   const cityCounts = useMemo(() => allCafes.reduce((counts, cafe) => {
     counts[cafe.city] = (counts[cafe.city] || 0) + 1;
