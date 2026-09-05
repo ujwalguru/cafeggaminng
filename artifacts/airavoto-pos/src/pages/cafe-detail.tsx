@@ -439,7 +439,7 @@ export default function CafeDetail() {
     <main className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
       {/* Navbar — hidden on mobile */}
       <div className="hidden lg:block">
-        <Navbar cafePage />
+        <Navbar />
       </div>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
