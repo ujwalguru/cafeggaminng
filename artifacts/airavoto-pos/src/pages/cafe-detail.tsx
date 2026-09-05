@@ -459,7 +459,7 @@ export default function CafeDetail() {
         <div className="absolute inset-x-3 bottom-12 z-10 sm:inset-x-5 sm:bottom-14">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:gap-3">
             <div className="min-w-0 flex-1 text-shadow-[0_2px_5px_rgba(0,0,0,0.95)]">
-              <h1 className="truncate whitespace-nowrap text-xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] sm:text-3xl lg:text-4xl">{cafe.name}</h1>
+              <h1 className="truncate whitespace-nowrap text-[clamp(1.35rem,5.5vw,1.75rem)] font-extrabold tracking-tight text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] sm:text-3xl lg:text-4xl">{cafe.name}</h1>
               <p className="mt-0.5 truncate text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:text-sm">{cafe.tagline}</p>
               <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:mt-3 sm:text-sm">
                 <MapPin className="size-3.5 shrink-0" />
