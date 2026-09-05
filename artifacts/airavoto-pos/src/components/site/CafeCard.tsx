@@ -130,6 +130,9 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
               )}
             </span>
           </div>
+          {cafe.priceVisible === false && (
+            <p className="text-[10px] leading-tight text-muted-foreground">Price hidden. Please contact the café for the current rate.</p>
+          )}
         </div>
       </article>
     </Link>

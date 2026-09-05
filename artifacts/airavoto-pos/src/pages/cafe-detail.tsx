@@ -590,6 +590,7 @@ export default function CafeDetail() {
             {/* Pricing */}
             <section>
               <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Pricing Plans</h2>
+              {cafe.priceVisible === false && <p className="mb-3 text-xs text-muted-foreground">Price hidden. Please contact the café for the current rate.</p>}
               <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
                 {cafe.plans.map((plan) => (
                   <div
@@ -622,6 +623,7 @@ export default function CafeDetail() {
                   <div>
                     <h2 className="text-base font-bold sm:text-lg">Happy-hour pricing</h2>
                     <p className="mt-1 text-xs text-muted-foreground">Special rates configured by this café.</p>
+                    {happyHourPricing.some((plan) => plan.priceVisible === false) && <p className="mt-1 text-xs text-muted-foreground">Price hidden. Please contact the café for the current rate.</p>}
                   </div>
                   <Clock className="mt-0.5 size-5 shrink-0 text-[oklch(0.80_0.14_60)]" />
                 </div>
