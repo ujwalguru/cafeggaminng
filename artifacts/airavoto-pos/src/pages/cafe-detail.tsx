@@ -787,10 +787,12 @@ export default function CafeDetail() {
             <p className={`truncate text-base font-extrabold leading-tight text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
           </div>
           <a
-            href={`tel:${cafe.phone}`}
+            href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl bg-primary px-2 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
           >
-            <Phone className="size-4" /> Contact
+            <MessageCircle className="size-4" /> WhatsApp Contact
           </a>
         </div>
       </nav>
