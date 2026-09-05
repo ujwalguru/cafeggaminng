@@ -94,7 +94,7 @@ function displayStrings(value: unknown): string[] {
       if (item && typeof item === "object") {
         const record = item as Record<string, unknown>;
         return String(
-          record.name ?? record.label ?? record.title ?? record.category ?? "",
+          record.imageUrl ?? record.image_url ?? record.url ?? record.name ?? record.label ?? record.title ?? record.category ?? "",
         );
       }
       return String(item ?? "");
