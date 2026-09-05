@@ -16,6 +16,7 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
   const livePc = getLiveDevice(live ?? null, 'PC');
   const livePs5 = getLiveDevice(live ?? null, 'PS5');
   const hasLiveData = live?.status === 'online' && !live.is_stale && Boolean(livePc || livePs5);
+  const isOffline = live?.status === 'offline' || live?.is_stale;
   // Take up to 3 amenities to show as chips; count overflow
   const chips = cafe.amenities.filter((a) => TOP_AMENITIES.includes(a)).slice(0, 3);
   const overflow = cafe.amenities.length - chips.length;
@@ -33,9 +34,15 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
               event.currentTarget.onerror = null;
               event.currentTarget.src = DEFAULT_CAFE_IMAGE;
             }}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOffline ? 'grayscale opacity-65' : ''}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.12_0_0/0.7)] via-transparent to-transparent" />
+
+          {isOffline && (
+            <span className="absolute right-3 top-3 rounded-full border border-white/25 bg-black/75 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+              Offline
+            </span>
+          )}
 
           {/* Featured badge */}
           {cafe.featured && (

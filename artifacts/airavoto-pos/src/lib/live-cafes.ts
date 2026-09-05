@@ -399,7 +399,7 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
         })
         .filter(
           (snapshot: LiveCafeSnapshot) =>
-            snapshot.status === "online" && !snapshot.is_stale,
+            snapshot.status !== "suspended",
         )
     : [];
 }
