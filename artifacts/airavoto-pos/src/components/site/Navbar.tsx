@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Search, Menu, X, Instagram, Facebook, Youtube } from 'lucide-react';
+import { Search, Menu, X, Instagram, Youtube, Gamepad2 } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Explore', to: '/cafes' },
@@ -9,7 +9,7 @@ const NAV_LINKS = [
 
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/', icon: Instagram },
-  { label: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook },
+  { label: 'Discord', href: 'https://discord.com/', icon: Gamepad2 },
   { label: 'YouTube', href: 'https://www.youtube.com/', icon: Youtube },
 ];
 
