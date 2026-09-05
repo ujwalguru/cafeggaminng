@@ -9,6 +9,7 @@ interface SearchBarProps {
   defaultCategory?: GameCategory | '';
   variant?: 'hero' | 'compact';
   onSearch?: (query: string, city: string, category: GameCategory | '') => void;
+  cities?: string[];
 }
 
 export function SearchBar({
@@ -17,6 +18,7 @@ export function SearchBar({
   defaultCategory = '',
   variant = 'hero',
   onSearch,
+  cities = CITIES,
 }: SearchBarProps) {
   const [, navigate] = useLocation();
   const [query, setQuery] = useState(defaultQuery);
@@ -131,7 +133,7 @@ export function SearchBar({
                 >
                   All Cities
                 </button>
-                {CITIES.map((c) => (
+                {cities.map((c) => (
                   <button
                     key={c}
                     type="button"

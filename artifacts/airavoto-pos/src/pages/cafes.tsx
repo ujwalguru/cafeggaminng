@@ -68,6 +68,7 @@ export default function CafesPage() {
   const liveBySlug = useMemo(() => new Map(liveSnapshots.map((snapshot) => [snapshot.slug, snapshot])), [liveSnapshots]);
   const liveCatalog = useMemo(() => liveSnapshots.map(liveSnapshotToCafe), [liveSnapshots]);
   const catalog = liveCatalog;
+  const availableCities = useMemo(() => Array.from(new Set([...CITIES, ...liveCatalog.map((cafe) => cafe.city).filter(Boolean)])).sort(), [liveCatalog]);
 
   // Sync URL params whenever they change externally (back button, etc.)
   useEffect(() => {
@@ -130,6 +131,7 @@ export default function CafesPage() {
               defaultQuery={query}
               defaultCity={city}
               defaultCategory={category}
+              cities={availableCities}
               onSearch={(q, c, cat) => { setQuery(q); setCity(c); setCategory(cat); }}
             />
           </div>
@@ -211,7 +213,7 @@ export default function CafesPage() {
               <div>
                 <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">City</p>
                 <div className="flex flex-wrap gap-2">
-                  {['', ...CITIES].map((c) => (
+                  {['', ...availableCities].map((c) => (
                     <button key={c || 'all'} onClick={() => setCity(c)} className={`rounded-full border px-3 py-1 text-xs transition-colors ${city === c ? 'border-[oklch(0.50_0.08_265)] bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.82_0.12_265)] font-medium' : 'border-border/60 text-muted-foreground'}`}>
                       {c || 'All'}
                     </button>
@@ -239,7 +241,7 @@ export default function CafesPage() {
             <div>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">City</p>
               <div className="space-y-1">
-                {['', ...CITIES].map((c) => (
+                {['', ...availableCities].map((c) => (
                   <button
                     key={c || 'all'}
                     onClick={() => setCity(c)}

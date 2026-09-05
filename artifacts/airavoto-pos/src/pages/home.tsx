@@ -74,6 +74,7 @@ export default function Home() {
     counts[cafe.city] = (counts[cafe.city] || 0) + 1;
     return counts;
   }, {} as Record<string, number>), [allCafes]);
+  const availableCities = useMemo(() => Array.from(new Set([...CITIES, ...allCafes.map((cafe) => cafe.city).filter(Boolean)])).sort(), [allCafes]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -260,7 +261,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-          {CITIES.map((city) => {
+          {availableCities.map((city) => {
             const count = cityCounts[city] ?? 0;
             return (
               <Link
