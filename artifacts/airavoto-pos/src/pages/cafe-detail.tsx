@@ -493,7 +493,7 @@ export default function CafeDetail() {
         </div>
 
         {/* Booking marquee — across the bottom edge of the hero */}
-        <div className="absolute inset-x-0 bottom-0 z-20 overflow-hidden border-y border-primary/30 bg-primary/10 py-2.5 text-primary" role="note">
+        <div className="absolute inset-x-0 bottom-0 z-20 overflow-hidden border-y border-white/15 bg-black/75 py-2.5 text-primary shadow-[0_-10px_28px_rgba(0,0,0,0.75)] backdrop-blur-sm" role="note">
           <div className="booking-marquee-track flex items-center gap-10 whitespace-nowrap px-4 text-xs font-extrabold uppercase tracking-wide sm:text-sm">
             <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
             <span aria-hidden="true">•</span>
