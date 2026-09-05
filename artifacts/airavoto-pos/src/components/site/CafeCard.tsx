@@ -22,7 +22,17 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
   const overflow = cafe.amenities.length - chips.length;
 
   return (
-    <Link href={`/cafes/${cafe.slug}`} className="group block focus:outline-none">
+    <Link
+      href={`/cafes/${cafe.slug}`}
+      onClick={(event) => {
+        if (isOffline) {
+          event.preventDefault();
+          window.alert('Oops! This café is currently offline and cannot be opened.');
+        }
+      }}
+      aria-disabled={isOffline}
+      className="group block focus:outline-none"
+    >
       <article className="flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_8px_32px_oklch(0_0_0/0.4)]">
 
         {/* Image */}
