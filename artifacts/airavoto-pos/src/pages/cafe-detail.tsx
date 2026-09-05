@@ -446,10 +446,10 @@ export default function CafeDetail() {
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
         <img src={cafe.image} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
-        {/* Back button — desktop only; mobile uses the fixed bottom navigation */}
+        {/* Back button — stays at the top on both mobile and desktop */}
         <Link
           href="/cafes"
-          className="absolute left-4 top-4 hidden items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 lg:flex lg:gap-1.5 lg:border lg:px-4 lg:py-2 lg:text-sm lg:font-medium"
+          className="absolute left-4 top-4 flex size-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 lg:size-auto lg:gap-1.5 lg:border lg:px-4 lg:py-2 lg:text-sm lg:font-medium"
         >
           <ArrowLeft className="size-4" />
           <span className="hidden lg:inline">All Cafes</span>
