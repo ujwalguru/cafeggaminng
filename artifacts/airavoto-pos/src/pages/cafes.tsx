@@ -8,6 +8,8 @@ import { Footer } from '@/components/site/Footer';
 import { CITIES, CATEGORIES, type GameCategory } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import { fetchLiveCafes, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { liveCafeChangeSignature } from '@/lib/live-cafes';
+import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
 
 type SortKey = 'rating' | 'price_asc' | 'price_desc' | 'reviews';
 
@@ -44,13 +46,25 @@ export default function CafesPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [liveSnapshots, setLiveSnapshots] = useState<LiveCafeSnapshot[]>([]);
   const [liveLoading, setLiveLoading] = useState(true);
+  const [hasLiveChanges, setHasLiveChanges] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const snapshots = await fetchLiveCafes();
-        if (!cancelled) setLiveSnapshots(snapshots);
+        if (!cancelled) {
+          setLiveSnapshots((current) => {
+            if (current.length === 0) return snapshots;
+            const previous = new Map(current.map((snapshot) => [snapshot.slug, liveCafeChangeSignature(snapshot)]));
+            const changed = snapshots.length !== current.length || snapshots.some((snapshot) => previous.get(snapshot.slug) !== liveCafeChangeSignature(snapshot));
+            if (changed) {
+              setHasLiveChanges(true);
+              return current;
+            }
+            return current;
+          });
+        }
       } catch {
         // The public catalog intentionally stays empty when the live service is unavailable.
       } finally {
@@ -115,6 +129,7 @@ export default function CafesPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
+      <LiveRefreshPrompt visible={hasLiveChanges} />
 
       {/* ── Search header ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-40 border-b border-border/60 bg-[oklch(0.11_0_0/0.95)] backdrop-blur-xl">

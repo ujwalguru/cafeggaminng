@@ -9,6 +9,8 @@ import { Footer } from '@/components/site/Footer';
 import { CITIES } from '@/lib/cafes';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import { fetchLiveCafes, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { liveCafeChangeSignature } from '@/lib/live-cafes';
+import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
 
 const POPULAR = ['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'];
 
@@ -45,13 +47,26 @@ export default function Home() {
   const [deviceQ, setDeviceQ] = useState('');
   const [liveSnapshots, setLiveSnapshots] = useState<LiveCafeSnapshot[]>([]);
   const [liveLoading, setLiveLoading] = useState(true);
+  const [hasLiveChanges, setHasLiveChanges] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const snapshots = await fetchLiveCafes();
-        if (!cancelled) setLiveSnapshots(snapshots);
+        if (!cancelled) {
+          setLiveSnapshots((current) => {
+            if (current.length > 0) {
+              const previous = new Map(current.map((snapshot) => [snapshot.slug, liveCafeChangeSignature(snapshot)]));
+              const changed = snapshots.length !== current.length || snapshots.some((snapshot) => previous.get(snapshot.slug) !== liveCafeChangeSignature(snapshot));
+              if (changed) {
+                setHasLiveChanges(true);
+                return current;
+              }
+            }
+            return current.length === 0 ? snapshots : current;
+          });
+        }
       } catch {
         // The public catalog intentionally stays empty when the live service is unavailable.
       } finally {
@@ -87,6 +102,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Navbar />
+      <LiveRefreshPrompt visible={hasLiveChanges} />
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden pb-20 pt-28 text-center">

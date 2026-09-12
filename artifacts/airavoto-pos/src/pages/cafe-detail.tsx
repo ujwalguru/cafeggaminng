@@ -12,7 +12,8 @@ import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
-import { DEFAULT_CAFE_IMAGE, fetchLiveCafe, getLiveDevice, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { DEFAULT_CAFE_IMAGE, fetchLiveCafe, getLiveDevice, liveCafeChangeSignature, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = string;
@@ -226,6 +227,7 @@ export default function CafeDetail() {
   const [liveSnapshot, setLiveSnapshot] = useState<LiveCafeSnapshot | null>(null);
   const [liveError, setLiveError] = useState(false);
   const [liveLoading, setLiveLoading] = useState(true);
+  const [hasLiveChanges, setHasLiveChanges] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
@@ -242,7 +244,13 @@ export default function CafeDetail() {
       try {
         const snapshot = await fetchLiveCafe(slug);
         if (!cancelled) {
-          setLiveSnapshot(snapshot);
+          setLiveSnapshot((current) => {
+            if (current && snapshot && liveCafeChangeSignature(current) !== liveCafeChangeSignature(snapshot)) {
+              setHasLiveChanges(true);
+              return current;
+            }
+            return snapshot;
+          });
           setLiveError(false);
         }
       } catch {
@@ -437,6 +445,7 @@ export default function CafeDetail() {
 
   return (
     <main className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
+      <LiveRefreshPrompt visible={hasLiveChanges} />
       {/* Navbar — hidden on mobile */}
       <div className="hidden lg:block">
         <Navbar />

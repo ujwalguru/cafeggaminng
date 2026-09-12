@@ -47,6 +47,27 @@ export interface LiveCafeSnapshot {
   };
 }
 
+export function liveCafeChangeSignature(snapshot: LiveCafeSnapshot): string {
+  return JSON.stringify({
+    slug: snapshot.slug,
+    name: snapshot.name,
+    city: snapshot.city,
+    area: snapshot.area,
+    address: snapshot.address,
+    status: snapshot.status,
+    metadata: snapshot.metadata,
+    configurations: snapshot.configurations,
+    devices: snapshot.devices.map((device) => ({
+      type: device.type,
+      category: device.category,
+      total: device.total,
+      available: device.available,
+      inUse: device.inUse,
+      seats: device.seats.map((seat) => ({ id: seat.id, label: seat.label, available: seat.available, status: seat.status, occupiedUntil: seat.occupiedUntil })),
+    })),
+  });
+}
+
 function normalizeType(value: unknown): string {
   return String(value || "PC")
     .trim()
