@@ -260,7 +260,7 @@ export default function CafeDetail() {
       }
     };
     load();
-    const interval = window.setInterval(load, 15_000);
+    const interval = window.setInterval(load, 10_000);
     return () => {
       cancelled = true;
       window.clearInterval(interval);
