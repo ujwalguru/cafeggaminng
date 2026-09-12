@@ -103,6 +103,17 @@ function displayStrings(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function optimizeGalleryImage(value: string): string {
+  const url = value.trim();
+  if (!url || !url.includes("res.cloudinary.com")) return url;
+  const marker = "/image/upload/";
+  const index = url.indexOf(marker);
+  if (index < 0) return url;
+  const rest = url.slice(index + marker.length);
+  if (/^(?:f_auto,)?(?:q_auto|q_\d+)/.test(rest)) return url;
+  return `${url.slice(0, index + marker.length)}f_auto,q_auto:best,dpr_auto,c_limit,w_2400/${rest}`;
+}
+
 const OPENING_HOURS_DAY_ORDER = [
   "Monday",
   "Tuesday",
@@ -448,7 +459,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
       plansByCategory.set(item.category, item);
   }
   const metadata = snapshot.metadata || {};
-  const gallery = displayStrings(metadata.gallery);
+  const gallery = displayStrings(metadata.gallery).map(optimizeGalleryImage);
   const normalizedHours = normalizeHours(
     metadata.hours ?? metadata.openingHours ?? metadata.opening_hours,
   );
@@ -472,7 +483,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
         normalizedHours[0]?.time ??
         "Live status",
     ),
-    image: String(metadata.image || gallery[0] || DEFAULT_CAFE_IMAGE),
+    image: String(gallery[0] || metadata.image || DEFAULT_CAFE_IMAGE),
     gallery,
     categories: snapshot.categories,
     amenities: displayStrings(metadata.amenities) as Cafe["amenities"],
