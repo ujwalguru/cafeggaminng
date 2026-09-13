@@ -310,6 +310,9 @@ export default function CafeDetail() {
     return platform === selected || platform.includes(selected) || (selected.includes('pc') && platform === 'game') || (selected.includes('single') && SINGLE_PLAYER_GAMES.has(game.name.toLowerCase()));
   });
   const gamesForTab = filteredGames.length ? filteredGames : allGames;
+  const deviceSpecifications = (liveSnapshot?.configurations?.devices ?? [])
+    .map((device: any) => ({ category: String(device.category ?? device.name ?? 'Device'), specifications: device.specifications && typeof device.specifications === 'object' ? device.specifications as Record<string, unknown> : {} }))
+    .filter((device) => Object.keys(device.specifications).length > 0);
 
   useDocumentMeta({
     title: cafe ? `${cafe.name} — ${cafe.area}, ${cafe.city} | Airavoto Cafe` : 'Café Not Found',
@@ -558,6 +561,21 @@ export default function CafeDetail() {
               <div className="pointer-events-none absolute right-0 top-0 h-full w-14 rounded-r-2xl bg-gradient-to-l from-background via-background/75 to-transparent" />
               </div>
             </section>
+
+            {deviceSpecifications.length > 0 && (
+              <section>
+                <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4"><div><h2 className="text-base font-bold sm:text-lg">Device Specifications</h2><p className="mt-1 text-xs text-muted-foreground">See the equipment available for each gaming category.</p></div></div>
+                <div className="relative mb-4">
+                  <div className="flex gap-2 overflow-x-auto rounded-2xl border border-border/60 bg-muted/20 p-1.5 pr-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {deviceSpecifications.map((device) => <button key={device.category} type="button" onClick={() => setGameTab(`spec:${device.category}`)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition-all ${gameTab === `spec:${device.category}` ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>{device.category}</button>)}
+                  </div>
+                  <div className="pointer-events-none absolute right-0 top-0 h-full w-12 rounded-r-2xl bg-gradient-to-l from-background via-background/70 to-transparent" />
+                </div>
+                <div className="relative"><div className="flex snap-x gap-3 overflow-x-auto pb-3 pr-10 [scrollbar-width:thin]">
+                  {(deviceSpecifications.find((device) => `spec:${device.category}` === gameTab) ?? deviceSpecifications[0]).specifications && Object.entries((deviceSpecifications.find((device) => `spec:${device.category}` === gameTab) ?? deviceSpecifications[0]).specifications).map(([label, value]) => <div key={label} className="min-w-[190px] snap-start rounded-2xl border border-border/60 bg-card px-4 py-3"><div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div><div className="mt-1 text-sm font-semibold text-foreground">{String(value || 'Not specified')}</div></div>)}
+                </div><div className="pointer-events-none absolute right-0 top-0 h-full w-14 rounded-r-2xl bg-gradient-to-l from-background via-background/75 to-transparent" /></div>
+              </section>
+            )}
 
             {/* Amenities */}
             <section>
