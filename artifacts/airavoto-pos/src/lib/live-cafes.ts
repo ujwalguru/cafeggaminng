@@ -412,6 +412,17 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
               : listing.status === "suspended"
                 ? "suspended"
                 : "online";
+          const configuredDevices = Array.isArray(listing.configurations?.devices) ? listing.configurations.devices : [];
+          const correctedDevices = devices.map((liveDevice) => {
+            const matchingConfigs = configuredDevices.filter((config: any) => inferDeviceType(config) === liveDevice.type);
+            const configuredTotal = matchingConfigs.length === 1
+              ? Math.max(0, Number(matchingConfigs[0]?.count ?? 1) || 1)
+              : matchingConfigs.length;
+            const correctedTotal = Math.max(liveDevice.total, configuredTotal);
+            return correctedTotal > liveDevice.total
+              ? { ...liveDevice, total: correctedTotal, inUse: Math.max(0, correctedTotal - liveDevice.available) }
+              : liveDevice;
+          });
           return {
             slug: String(
               listing.slug ?? listing.cafe_slug ?? metadata.id ?? "",
@@ -435,7 +446,7 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
             is_stale: Boolean(listing.is_stale),
             last_updated: Number(listing.last_updated || 0),
             last_heartbeat: listing.capturedAt || listing.last_heartbeat,
-            devices,
+            devices: correctedDevices,
             configurations: listing.configurations,
           };
         })
