@@ -279,8 +279,7 @@ export default function CafeDetail() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [gameTab, setGameTab] = useState('PC');
-  const [stationTab, setStationTab] = useState<'seats' | 'booked' | 'suggestion'>('seats');
-  const [bookingDateFilter, setBookingDateFilter] = useState(() => localDateKey(new Date()));
+  const [stationTab, setStationTab] = useState<'seats' | 'suggestion'>('seats');
   const [suggestionDate, setSuggestionDate] = useState(() => localDateKey(new Date()));
   const [suggestionDuration, setSuggestionDuration] = useState(60);
   const [suggestionTime, setSuggestionTime] = useState('');
@@ -351,7 +350,7 @@ export default function CafeDetail() {
     const start = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
     if (!Number.isFinite(start) || start <= Date.now()) return false;
     const date = new Date(start);
-    if (bookingDateFilter && localDateKey(date) !== bookingDateFilter) return false;
+    if (localDateKey(date) !== localDateKey(new Date())) return false;
     return true;
   });
   const modalRunningStations = modalStations.filter((station) => !station.available && String(station.status || '').toLowerCase() !== 'scheduled');
@@ -359,7 +358,7 @@ export default function CafeDetail() {
   // Future bookings do not make a seat unavailable right now. The green tab
   // is based only on the red/currently occupied seats.
   const modalAvailableStations = modalStations.filter((station) => !modalRunningStations.includes(station));
-  const visibleModalStations = stationTab === 'booked' ? modalBookedStations : modalStations;
+  const visibleModalStations = modalStations;
   const suggestionDates = Array.from({ length: 14 }, (_, index) => {
     const date = new Date();
     date.setHours(0, 0, 0, 0);
@@ -970,48 +969,19 @@ export default function CafeDetail() {
 
             <div className="mb-4 flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" /> Available</span>
-              <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.78_0.16_85)]" /> Booked / upcoming</span>
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.55_0.16_25)]" /> Occupied</span>
             </div>
 
-            <div className="mb-4 grid grid-cols-3 gap-1 rounded-xl border border-border/60 bg-black/20 p-1">
+            <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl border border-border/60 bg-black/20 p-1">
               {([
                 ['seats', `Seats · ${modalAvailableStations.length} available · ${modalRunningStations.length} running`],
-                ['booked', `Booked · ${modalBookedStations.length}`],
               ] as const).map(([value, label]) => (
-                <button key={value} type="button" onClick={() => setStationTab(value)} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === value ? value === 'booked' ? 'bg-amber-400/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'}`}>
+                <button key={value} type="button" onClick={() => setStationTab(value)} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === value ? 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'}`}>
                   {label}
                 </button>
               ))}
               <button type="button" onClick={() => setStationTab('suggestion')} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === 'suggestion' ? 'bg-sky-400/20 text-sky-200' : 'text-muted-foreground hover:text-foreground'}`}>Suggestion</button>
             </div>
-
-            {stationTab === 'booked' && (
-              <div className="mb-4">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Choose a date</p>
-                <div className="flex snap-x gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
-                  {Array.from({ length: 14 }, (_, index) => {
-                    const date = new Date();
-                    date.setHours(0, 0, 0, 0);
-                    date.setDate(date.getDate() + index);
-                    const key = localDateKey(date);
-                    const selected = bookingDateFilter === key;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setBookingDateFilter(key)}
-                        className={`min-w-[112px] snap-start rounded-2xl border px-4 py-3 text-left transition-colors ${selected ? 'border-[oklch(0.78_0.16_85)] bg-[oklch(0.78_0.16_85/0.22)] text-[oklch(0.96_0.20_85)]' : 'border-border/60 bg-black/20 text-muted-foreground hover:border-[oklch(0.78_0.16_85/0.55)] hover:text-foreground'}`}
-                      >
-                        <span className="block text-xs font-semibold">{index === 0 ? 'Today' : index === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                        <span className="mt-1 block text-xl font-extrabold leading-none">{date.toLocaleDateString('en-US', { day: 'numeric' })}</span>
-                        <span className="mt-1 block text-[11px] uppercase tracking-wide">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {stationTab === 'suggestion' && (
               <div className="mb-4 space-y-4 rounded-2xl border border-sky-400/40 bg-sky-400/5 p-4">
@@ -1052,7 +1022,7 @@ export default function CafeDetail() {
               {visibleModalStations.map((s) => {
                 const upcomingBookings = futureBookingsFor(s);
                 const isOccupiedNow = !s.available && String(s.status || '').toLowerCase() !== 'scheduled';
-                const showBookedDetails = stationTab === 'booked';
+                const showBookedDetails = false;
                 return (
                   <div
                     key={s.id}
