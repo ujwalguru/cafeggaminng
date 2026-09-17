@@ -117,7 +117,7 @@ function minimizeListing(listing: any) {
     availability: availability.slice(0, 30).map((device: any) => ({
       type: safeString(device?.type ?? device?.category ?? device?.name, 80),
       category: safeString(device?.category, 80),
-      total: Math.max(0, safeNumber(device?.total), Array.isArray(device?.seats) ? device.seats.length : 0),
+      total: Math.max(0, safeNumber(device?.total) || (Array.isArray(device?.seats) ? device.seats.length : 0)),
       available: Math.max(0, safeNumber(device?.available)),
       seats: Array.isArray(device?.seats)
         ? device.seats.slice(0, 200).map((seat: any, index: number) => ({

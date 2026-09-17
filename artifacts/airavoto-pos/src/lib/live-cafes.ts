@@ -426,8 +426,8 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
             const configuredTotal = matchingConfigs.length === 1
               ? Math.max(0, Number(matchingConfigs[0]?.count ?? 1) || 1)
               : matchingConfigs.length;
-            const correctedTotal = Math.max(liveDevice.total, configuredTotal);
-            return correctedTotal > liveDevice.total
+            const correctedTotal = liveDevice.total > 0 ? liveDevice.total : configuredTotal;
+            return correctedTotal !== liveDevice.total
               ? { ...liveDevice, total: correctedTotal, inUse: Math.max(0, correctedTotal - liveDevice.available) }
               : liveDevice;
           });
