@@ -59,6 +59,13 @@ function formatBookingDate(value: string | null) {
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+function localDateKey(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function formatHour(value: string) {
   const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?$/);
   if (!match) return value;
@@ -260,6 +267,8 @@ export default function CafeDetail() {
   const [selectedRating, setSelectedRating] = useState(0);
   const [gameTab, setGameTab] = useState('PC');
   const [stationTab, setStationTab] = useState<'available' | 'running' | 'booked'>('available');
+  const [bookingDateFilter, setBookingDateFilter] = useState(() => localDateKey(new Date()));
+  const [bookingTimeFilter, setBookingTimeFilter] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -321,7 +330,11 @@ export default function CafeDetail() {
   const modalTotal = stationModal === 'PC' ? pcTotal : stationModal === 'PS5' ? ps5Total : (selectedDevice?.total ?? 0);
   const futureBookingsFor = (station: Station) => (station.bookingsUpcoming?.length ? station.bookingsUpcoming : station.bookingsToday ?? []).filter((booking) => {
     const start = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
-    return Number.isFinite(start) && start > Date.now();
+    if (!Number.isFinite(start) || start <= Date.now()) return false;
+    const date = new Date(start);
+    if (bookingDateFilter && localDateKey(date) !== bookingDateFilter) return false;
+    if (bookingTimeFilter && date.toTimeString().slice(0, 5) < bookingTimeFilter) return false;
+    return true;
   });
   const modalRunningStations = modalStations.filter((station) => !station.available && String(station.status || '').toLowerCase() !== 'scheduled');
   const modalBookedStations = modalStations.filter((station) => !modalRunningStations.includes(station) && futureBookingsFor(station).length > 0);
@@ -921,6 +934,14 @@ export default function CafeDetail() {
                 </button>
               ))}
             </div>
+
+            {stationTab === 'booked' && (
+              <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                <label className="text-[11px] font-semibold text-muted-foreground">Booking date<input type="date" value={bookingDateFilter} min={localDateKey(new Date())} onChange={(event) => setBookingDateFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground" /></label>
+                <label className="text-[11px] font-semibold text-muted-foreground">From time<input type="time" value={bookingTimeFilter} onChange={(event) => setBookingTimeFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground" /></label>
+                <button type="button" onClick={() => setBookingTimeFilter('')} className="self-end rounded-lg border border-border/60 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground">Any time</button>
+              </div>
+            )}
 
             <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
               {visibleModalStations.map((s) => {
