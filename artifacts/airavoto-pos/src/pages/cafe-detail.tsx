@@ -239,6 +239,7 @@ export default function CafeDetail() {
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
   const [stationModal, setStationModal] = useState<StationType | null>(null);
+  const [bookingDetail, setBookingDetail] = useState<{ station: string; bookings: Array<{ startTime: string | null; endTime: string | null; status: string }> } | null>(null);
   const [liveSnapshot, setLiveSnapshot] = useState<LiveCafeSnapshot | null>(null);
   const [liveError, setLiveError] = useState(false);
   const [liveLoading, setLiveLoading] = useState(true);
@@ -906,12 +907,12 @@ export default function CafeDetail() {
                           : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                     }`}
                   >
-                    <p className={`text-sm font-bold ${isOccupiedNow ? 'text-foreground' : upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
+                    <p className={`text-sm font-bold ${isOccupiedNow ? 'text-[oklch(0.78_0.14_25)]' : upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
                     {upcomingBookings.length > 0 ? (
-                      <div className="mt-1 space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">
-                        <p>{upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} today</p>
-                        {upcomingBookings.map((booking, index) => <p key={`${booking.startTime}-${index}`}>{formatBookingRange(booking.startTime, booking.endTime)}</p>)}
-                      </div>
+                      <button type="button" className="mt-1 w-full space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)] underline-offset-2 hover:underline" onClick={() => setBookingDetail({ station: s.label, bookings: upcomingBookings })}>
+                        <span className="block">{upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} today</span>
+                        {upcomingBookings.map((booking, index) => <span className="block" key={`${booking.startTime}-${index}`}>{formatBookingRange(booking.startTime, booking.endTime)}</span>)}
+                      </button>
                     ) : upcomingToday ? (
                       <p className="mt-1 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">Booked today · {formatOccupiedUntil(s.startTime ?? null)}</p>
                     ) : s.available ? (
@@ -925,6 +926,22 @@ export default function CafeDetail() {
             </div>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">Call the cafe to reserve a specific station</p>
+          </div>
+        </div>
+      )}
+
+      {bookingDetail && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-3 py-4 sm:px-5" onClick={() => setBookingDetail(null)}>
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+          <div className="relative z-10 max-h-[88vh] w-full max-w-md overflow-y-auto rounded-3xl border border-[oklch(0.78_0.16_85/0.55)] bg-[oklch(0.13_0.02_265)] p-5 shadow-2xl sm:p-6" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div><p className="text-xs font-semibold uppercase tracking-wider text-[oklch(0.90_0.18_85)]">Today’s upcoming bookings</p><h3 className="mt-1 text-xl font-bold">{bookingDetail.station}</h3></div>
+              <button type="button" onClick={() => setBookingDetail(null)} className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground" aria-label="Close booking details"><X className="size-4" /></button>
+            </div>
+            <div className="space-y-3">
+              {bookingDetail.bookings.map((booking, index) => <div key={`${booking.startTime}-${index}`} className="rounded-2xl border border-[oklch(0.78_0.16_85/0.45)] bg-[oklch(0.22_0.12_85/0.2)] p-4"><p className="font-semibold text-[oklch(0.92_0.18_85)]">Booking {index + 1}</p><p className="mt-1 text-sm text-foreground">{formatBookingRange(booking.startTime, booking.endTime)}</p><p className="mt-1 text-xs capitalize text-muted-foreground">{booking.status || 'upcoming'}</p></div>)}
+            </div>
+            <p className="mt-5 text-center text-xs text-muted-foreground">This seat is currently occupied when shown in red.</p>
           </div>
         </div>
       )}
