@@ -996,7 +996,7 @@ export default function CafeDetail() {
                     {showBookedDetails && upcomingBookings.length > 0 ? (
                       <button type="button" className="mt-1 w-full space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)] underline-offset-2 hover:underline" onClick={() => setBookingDetail({ station: s.label, bookings: upcomingBookings })}>
                         <span className="block">{upcomingBookings.length} booking{upcomingBookings.length === 1 ? '' : 's'} · {formatBookingDate(upcomingBookings[0].startTime)}</span>
-                        {upcomingBookings.slice(0, 2).map((booking, index) => <span className="block" key={`${booking.startTime}-${index}`}>{formatBookingDate(booking.startTime)} · {formatBookingRange(booking.startTime, booking.endTime)}</span>)}
+                        {upcomingBookings.map((booking, index) => <span className="block" key={`${booking.startTime}-${booking.endTime}-${index}`}>{formatBookingDate(booking.startTime)} · {formatBookingRange(booking.startTime, booking.endTime)}</span>)}
                       </button>
                     ) : !showBookedDetails && isOccupiedNow ? (
                       <p className="mt-1 text-[10px] font-medium leading-tight text-[oklch(0.78_0.14_25)]">{formatOccupiedUntil(s.occupiedUntil)}</p>

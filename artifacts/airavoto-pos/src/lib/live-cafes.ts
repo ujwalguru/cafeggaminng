@@ -324,13 +324,16 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
         status: String(booking?.status ?? "upcoming"),
       }))
     : [];
-  const bookingsUpcoming = Array.isArray(seat?.bookingsUpcoming)
+  const upcomingRows = Array.isArray(seat?.bookingsUpcoming)
     ? seat.bookingsUpcoming.map((booking: any) => ({
         startTime: booking?.startTime ?? booking?.start_time ?? null,
         endTime: booking?.endTime ?? booking?.end_time ?? null,
         status: String(booking?.status ?? "upcoming"),
       }))
-    : bookingsToday;
+    : [];
+  const bookingsUpcoming = [...bookingsToday, ...upcomingRows].filter((booking, index, rows) => (
+    rows.findIndex((candidate) => candidate.startTime === booking.startTime && candidate.endTime === booking.endTime) === index
+  ));
   const now = Date.now();
   const occupiedByTime = bookingsUpcoming.some((booking: { startTime: string | null; endTime: string | null; status: string }) => {
     const start = new Date(String(booking.startTime || "")).getTime();
