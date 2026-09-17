@@ -17,7 +17,7 @@ import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = string;
-interface Station { id: number; label: string; available: boolean; occupiedUntil: string | null }
+interface Station { id: number; label: string; available: boolean; status?: string; startTime?: string | null; occupiedUntil: string | null }
 
 function stationKey(label: string) {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -31,6 +31,13 @@ function formatOccupiedUntil(value: string | null) {
   }
   const text = value.replace(/^until\s+/i, '').trim();
   return text ? `Until ${text}` : 'Occupied now';
+}
+
+function isToday(value: string | null | undefined) {
+  if (!value) return false;
+  const date = new Date(value);
+  const today = new Date();
+  return !Number.isNaN(date.getTime()) && date.getTime() > Date.now() && date.toDateString() === today.toDateString();
 }
 
 function formatHour(value: string) {
@@ -280,14 +287,15 @@ export default function CafeDetail() {
   const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
   const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
-  const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }))) : buildStations('PC', pcTotal, pcAvail, seed);
-  const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }))) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
+  const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null });
+  const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)) : buildStations('PC', pcTotal, pcAvail, seed);
+  const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map(mapLiveSeat)) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const selectedDevice = stationModal ? liveSnapshot?.devices.find((device) => device.type === stationModal) : null;
   const modalStations = stationModal === 'PC'
     ? pcStations
     : stationModal === 'PS5'
       ? ps5Stations
-      : (selectedDevice?.seats ?? []).map((seat, index) => ({ id: index + 1, label: seat.label, available: seat.available, occupiedUntil: seat.occupiedUntil ?? null }));
+      : (selectedDevice?.seats ?? []).map(mapLiveSeat);
   const modalAvail = stationModal === 'PC' ? pcAvail : stationModal === 'PS5' ? ps5Avail : (selectedDevice?.available ?? 0);
   const modalTotal = stationModal === 'PC' ? pcTotal : stationModal === 'PS5' ? ps5Total : (selectedDevice?.total ?? 0);
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
@@ -873,23 +881,30 @@ export default function CafeDetail() {
             </div>
 
             <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
-              {modalStations.map((s) => (
-                <div
-                  key={s.id}
-                  className={`rounded-xl border p-3 text-center ${
-                    s.available
-                      ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
-                      : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
-                  }`}
-                >
-                  <p className={`text-sm font-bold ${s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
-                  {s.available ? (
-                    <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>
-                  ) : (
-                    <p className="mt-1 text-[10px] font-medium leading-tight text-[oklch(0.78_0.14_25)]">{formatOccupiedUntil(s.occupiedUntil)}</p>
-                  )}
-                </div>
-              ))}
+              {modalStations.map((s) => {
+                const upcomingToday = String(s.status || '').toLowerCase() === 'scheduled' && isToday(s.startTime);
+                return (
+                  <div
+                    key={s.id}
+                    className={`rounded-xl border p-3 text-center ${
+                      upcomingToday
+                        ? 'border-[oklch(0.78_0.16_85/0.65)] bg-[oklch(0.22_0.12_85/0.28)]'
+                        : s.available
+                          ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
+                          : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
+                    }`}
+                  >
+                    <p className={`text-sm font-bold ${upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
+                    {upcomingToday ? (
+                      <p className="mt-1 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">Booked today · {formatOccupiedUntil(s.startTime ?? null)}</p>
+                    ) : s.available ? (
+                      <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>
+                    ) : (
+                      <p className="mt-1 text-[10px] font-medium leading-tight text-[oklch(0.78_0.14_25)]">{formatOccupiedUntil(s.occupiedUntil)}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">Call the cafe to reserve a specific station</p>

@@ -10,6 +10,7 @@ export interface LiveSeat {
   label: string;
   available: boolean;
   status: string;
+  startTime?: string | null;
   occupiedUntil?: string | null;
 }
 
@@ -63,7 +64,7 @@ export function liveCafeChangeSignature(snapshot: LiveCafeSnapshot): string {
       total: device.total,
       available: device.available,
       inUse: device.inUse,
-      seats: device.seats.map((seat) => ({ id: seat.id, label: seat.label, available: seat.available, status: seat.status, occupiedUntil: seat.occupiedUntil })),
+      seats: device.seats.map((seat) => ({ id: seat.id, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime, occupiedUntil: seat.occupiedUntil })),
     })),
   });
 }
@@ -328,6 +329,7 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
     ),
     available,
     status: String(seat?.status ?? (available ? "available" : "in_use")),
+    startTime: seat?.startTime ?? seat?.start_time ?? null,
     occupiedUntil:
       seat?.occupiedUntil ?? seat?.endTime ?? seat?.end_time ?? null,
   };

@@ -134,6 +134,11 @@ function minimizeListing(listing: any) {
               seat?.available === true ||
               String(seat?.status || "").toLowerCase() === "available",
             status: safeString(seat?.status, 40),
+            startTime:
+              safeString(
+                seat?.startTime ?? seat?.start_time,
+                80,
+              ) || null,
             occupiedUntil:
               safeString(
                 seat?.occupiedUntil ?? seat?.endTime ?? seat?.end_time,
