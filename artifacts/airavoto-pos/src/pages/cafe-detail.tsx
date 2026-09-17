@@ -66,6 +66,19 @@ function localDateKey(value: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatTimeValue(value: string) {
+  const [hour, minute] = value.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+const FIVE_MINUTE_TIME_SLOTS = Array.from({ length: 24 * 12 }, (_, index) => {
+  const hour = Math.floor(index / 12);
+  const minute = (index % 12) * 5;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+});
+
 function formatHour(value: string) {
   const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?$/);
   if (!match) return value;
@@ -333,6 +346,7 @@ export default function CafeDetail() {
     if (!Number.isFinite(start) || start <= Date.now()) return false;
     const date = new Date(start);
     if (bookingDateFilter && localDateKey(date) !== bookingDateFilter) return false;
+    if (bookingTimeFilter === 'current') return true;
     if (bookingTimeFilter && date.toTimeString().slice(0, 5) < bookingTimeFilter) return false;
     return true;
   });
@@ -938,7 +952,7 @@ export default function CafeDetail() {
             {stationTab === 'booked' && (
               <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
                 <label className="text-[11px] font-semibold text-muted-foreground">Booking date<input type="date" value={bookingDateFilter} min={localDateKey(new Date())} onChange={(event) => setBookingDateFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground" /></label>
-                <label className="text-[11px] font-semibold text-muted-foreground">From time<input type="time" value={bookingTimeFilter} onChange={(event) => setBookingTimeFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground" /></label>
+                <label className="text-[11px] font-semibold text-muted-foreground">Booking time<select value={bookingTimeFilter} onChange={(event) => setBookingTimeFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground"><option value="current">Current time</option><option value="">Any time</option>{FIVE_MINUTE_TIME_SLOTS.map((slot) => <option key={slot} value={slot}>{formatTimeValue(slot)}</option>)}</select></label>
                 <button type="button" onClick={() => setBookingTimeFilter('')} className="self-end rounded-lg border border-border/60 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground">Any time</button>
               </div>
             )}
