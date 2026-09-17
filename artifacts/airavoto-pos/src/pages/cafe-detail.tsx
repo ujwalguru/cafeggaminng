@@ -27,7 +27,7 @@ function formatOccupiedUntil(value: string | null) {
   if (!value) return 'Occupied now';
   const date = new Date(value);
   if (!Number.isNaN(date.getTime()) && /[T-]/.test(value)) {
-    return `Until ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    return `Until ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
   }
   const text = value.replace(/^until\s+/i, '').trim();
   return text ? `Until ${text}` : 'Occupied now';
@@ -44,7 +44,7 @@ function formatBookingRange(startTime: string | null, endTime: string | null) {
   const start = startTime ? new Date(startTime) : null;
   const end = endTime ? new Date(endTime) : null;
   if (!start || Number.isNaN(start.getTime())) return 'Upcoming booking';
-  const format = (value: Date) => value.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const format = (value: Date) => value.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   return `${format(start)} – ${end && !Number.isNaN(end.getTime()) ? format(end) : 'later'}`;
 }
 
