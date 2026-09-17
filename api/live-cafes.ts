@@ -134,6 +134,13 @@ function minimizeListing(listing: any) {
               seat?.available === true ||
               String(seat?.status || "").toLowerCase() === "available",
             status: safeString(seat?.status, 40),
+            bookingsToday: Array.isArray(seat?.bookingsToday)
+              ? seat.bookingsToday.slice(0, 24).map((booking: any) => ({
+                  startTime: safeString(booking?.startTime ?? booking?.start_time, 80),
+                  endTime: safeString(booking?.endTime ?? booking?.end_time, 80),
+                  status: safeString(booking?.status, 40),
+                }))
+              : [],
             startTime:
               safeString(
                 seat?.startTime ?? seat?.start_time,

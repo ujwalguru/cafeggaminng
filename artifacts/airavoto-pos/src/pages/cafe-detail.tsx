@@ -17,7 +17,7 @@ import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = string;
-interface Station { id: number; label: string; available: boolean; status?: string; startTime?: string | null; occupiedUntil: string | null }
+interface Station { id: number; label: string; available: boolean; status?: string; startTime?: string | null; occupiedUntil: string | null; bookingsToday?: Array<{ startTime: string | null; endTime: string | null; status: string }> }
 
 function stationKey(label: string) {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -38,6 +38,14 @@ function isToday(value: string | null | undefined) {
   const date = new Date(value);
   const today = new Date();
   return !Number.isNaN(date.getTime()) && date.getTime() > Date.now() && date.toDateString() === today.toDateString();
+}
+
+function formatBookingRange(startTime: string | null, endTime: string | null) {
+  const start = startTime ? new Date(startTime) : null;
+  const end = endTime ? new Date(endTime) : null;
+  if (!start || Number.isNaN(start.getTime())) return 'Upcoming booking';
+  const format = (value: Date) => value.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return `${format(start)} – ${end && !Number.isNaN(end.getTime()) ? format(end) : 'later'}`;
 }
 
 function formatHour(value: string) {
@@ -287,7 +295,7 @@ export default function CafeDetail() {
   const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
   const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
-  const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null });
+  const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [] });
   const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)) : buildStations('PC', pcTotal, pcAvail, seed);
   const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map(mapLiveSeat)) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const selectedDevice = stationModal ? liveSnapshot?.devices.find((device) => device.type === stationModal) : null;
@@ -883,6 +891,7 @@ export default function CafeDetail() {
             <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
               {modalStations.map((s) => {
                 const upcomingToday = String(s.status || '').toLowerCase() === 'scheduled' && isToday(s.startTime);
+                const upcomingBookings = (s.bookingsToday ?? []).filter((booking) => isToday(booking.startTime));
                 return (
                   <div
                     key={s.id}
@@ -895,7 +904,12 @@ export default function CafeDetail() {
                     }`}
                   >
                     <p className={`text-sm font-bold ${upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
-                    {upcomingToday ? (
+                    {upcomingBookings.length > 0 ? (
+                      <div className="mt-1 space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">
+                        <p>{upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} today</p>
+                        {upcomingBookings.map((booking, index) => <p key={`${booking.startTime}-${index}`}>{formatBookingRange(booking.startTime, booking.endTime)}</p>)}
+                      </div>
+                    ) : upcomingToday ? (
                       <p className="mt-1 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">Booked today · {formatOccupiedUntil(s.startTime ?? null)}</p>
                     ) : s.available ? (
                       <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>

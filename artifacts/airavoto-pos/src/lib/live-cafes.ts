@@ -12,6 +12,7 @@ export interface LiveSeat {
   status: string;
   startTime?: string | null;
   occupiedUntil?: string | null;
+  bookingsToday?: Array<{ startTime: string | null; endTime: string | null; status: string }>;
 }
 
 export interface LiveDeviceAvailability {
@@ -64,7 +65,7 @@ export function liveCafeChangeSignature(snapshot: LiveCafeSnapshot): string {
       total: device.total,
       available: device.available,
       inUse: device.inUse,
-      seats: device.seats.map((seat) => ({ id: seat.id, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime, occupiedUntil: seat.occupiedUntil })),
+        seats: device.seats.map((seat) => ({ id: seat.id, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime, occupiedUntil: seat.occupiedUntil, bookingsToday: seat.bookingsToday })),
     })),
   });
 }
@@ -332,6 +333,13 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
     startTime: seat?.startTime ?? seat?.start_time ?? null,
     occupiedUntil:
       seat?.occupiedUntil ?? seat?.endTime ?? seat?.end_time ?? null,
+    bookingsToday: Array.isArray(seat?.bookingsToday)
+      ? seat.bookingsToday.map((booking: any) => ({
+          startTime: booking?.startTime ?? booking?.start_time ?? null,
+          endTime: booking?.endTime ?? booking?.end_time ?? null,
+          status: String(booking?.status ?? "upcoming"),
+        }))
+      : [],
   };
 }
 
