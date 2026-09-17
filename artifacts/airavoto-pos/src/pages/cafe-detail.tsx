@@ -876,7 +876,7 @@ export default function CafeDetail() {
                 </span>
                 <div>
                   <h3 className="font-bold">{stationModal} Stations</h3>
-                  <p className="text-xs text-muted-foreground">{modalAvail} of {modalTotal} available right now</p>
+                  <p className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{modalAvail} available</span> · {modalTotal} total stations</p>
                 </div>
               </div>
               <button onClick={() => setStationModal(null)} className="flex size-8 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground">
