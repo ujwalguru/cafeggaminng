@@ -284,9 +284,10 @@ export default function CafeDetail() {
   const [suggestionDuration, setSuggestionDuration] = useState(60);
   const [suggestionTime, setSuggestionTime] = useState('');
   const [suggestionStep, setSuggestionStep] = useState(1);
-  const [suggestionSeatCount, setSuggestionSeatCount] = useState(1);
+  const [suggestionSeatCount, setSuggestionSeatCount] = useState('1');
   const [suggestionResults, setSuggestionResults] = useState<Station[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [suggestionMessage, setSuggestionMessage] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -377,18 +378,37 @@ export default function CafeDetail() {
   }).filter((slot) => !slot.disabled);
   const bookingsForStation = (station: Station) => [...(station.bookingsToday ?? []), ...(station.bookingsUpcoming ?? [])].filter((booking, index, rows) => rows.findIndex((candidate) => candidate.startTime === booking.startTime && candidate.endTime === booking.endTime) === index);
   const suggestStations = async () => {
+    const requestedSeats = Number.parseInt(suggestionSeatCount, 10);
+    if (!Number.isFinite(requestedSeats) || requestedSeats < 1 || !suggestionTime) {
+      setSuggestionMessage('Please choose a time and enter at least 1 seat.');
+      return;
+    }
     setSuggestionLoading(true);
     setSuggestionResults([]);
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-    const start = new Date(`${suggestionDate}T${suggestionTime || '09:00'}:00`);
-    const end = new Date(start.getTime() + suggestionDuration * 60_000);
-    const available = modalStations.filter((station) => bookingsForStation(station).every((booking) => {
-      const bookingStart = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
-      const bookingEnd = booking.endTime ? new Date(booking.endTime).getTime() : NaN;
-      return !Number.isFinite(bookingStart) || !Number.isFinite(bookingEnd) || bookingEnd <= start.getTime() || bookingStart >= end.getTime();
-    }));
-    setSuggestionResults(available.slice(0, Math.max(1, suggestionSeatCount)));
-    setSuggestionLoading(false);
+    setSuggestionMessage('');
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 450));
+      const start = new Date(`${suggestionDate}T${suggestionTime}:00`);
+      const end = new Date(start.getTime() + suggestionDuration * 60_000);
+      const available = modalStations.filter((station) => {
+        const status = String(station.status || '').toLowerCase();
+        if (!station.available && status !== 'scheduled') return false;
+        return bookingsForStation(station).every((booking) => {
+          const bookingStart = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
+          const bookingEnd = booking.endTime ? new Date(booking.endTime).getTime() : NaN;
+          return !Number.isFinite(bookingStart) || !Number.isFinite(bookingEnd) || bookingEnd <= start.getTime() || bookingStart >= end.getTime();
+        });
+      });
+      const results = available.slice(0, requestedSeats);
+      setSuggestionResults(results);
+      if (results.length < requestedSeats) {
+        setSuggestionMessage(results.length === 0 ? 'No seats are available for this date, time, and duration.' : `Only ${results.length} seat${results.length === 1 ? '' : 's'} are available for this selection.`);
+      }
+    } catch {
+      setSuggestionMessage('We could not check seat availability. Please try again.');
+    } finally {
+      setSuggestionLoading(false);
+    }
   };
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
   const happyHours = cafe?.happyHours ?? [];
@@ -987,7 +1007,7 @@ export default function CafeDetail() {
               <div className="mb-4 space-y-4 rounded-2xl border border-sky-400/40 bg-sky-400/5 p-4">
                 <div className={suggestionStep === 1 ? '' : 'hidden'}>
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Choose a date</p>
-                  <div className="flex snap-x gap-2 overflow-x-auto pb-2">
+                  <div className="flex snap-x gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {suggestionDates.map((date, index) => {
                       const key = localDateKey(date);
                       const selected = suggestionDate === key;
@@ -997,22 +1017,23 @@ export default function CafeDetail() {
                 </div>
                 <div className={suggestionStep === 2 ? '' : 'hidden'}>
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Play duration</p>
-                  <div className="flex snap-x gap-2 overflow-x-auto pb-1">
+                  <div className="flex snap-x gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {suggestionDurationOptions.map((minutes) => <button key={minutes} type="button" onClick={() => { setSuggestionDuration(minutes); setSuggestionStep(3); }} className={`shrink-0 rounded-xl border px-4 py-2 text-sm font-bold ${suggestionDuration === minutes ? 'border-sky-300 bg-sky-400/20 text-sky-100' : 'border-border/60 bg-black/20 text-muted-foreground'}`}>{formatDuration(minutes)}</button>)}
                   </div>
                 </div>
                 <div className={suggestionStep === 3 ? '' : 'hidden'}>
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Choose a 5-minute time slot</p>
-                  <div className="flex max-h-36 snap-x flex-wrap gap-2 overflow-y-auto pr-1 [scrollbar-width:thin]">
+                  <div className="flex max-h-36 snap-x flex-wrap gap-2 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {suggestionTimeSlots.map((slot) => <button key={slot.value} type="button" onClick={() => { setSuggestionTime(slot.value); setSuggestionStep(4); }} className={`rounded-xl border px-3 py-2 text-sm font-bold ${suggestionTime === slot.value ? 'border-sky-300 bg-sky-400/20 text-sky-100' : 'border-border/60 bg-black/20 text-muted-foreground hover:text-foreground'}`}>{slot.label}</button>)}
                   </div>
                 </div>
                 <div className={suggestionStep === 4 ? '' : 'hidden'}>
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">How many seats?
-                  <input type="number" min={1} max={modalStations.length || 1} value={suggestionSeatCount} onChange={(event) => setSuggestionSeatCount(Math.min(modalStations.length || 1, Math.max(1, Number(event.target.value) || 1)))} className="mt-2 h-10 w-full rounded-lg border border-border/60 bg-black/20 px-3 text-base font-bold text-foreground" />
+                  <input type="number" min={1} max={modalStations.length || 1} value={suggestionSeatCount} onChange={(event) => setSuggestionSeatCount(event.target.value.replace(/\D/g, ''))} onBlur={() => setSuggestionSeatCount((current) => String(Math.min(modalStations.length || 1, Math.max(1, Number.parseInt(current, 10) || 1))))} className="mt-2 h-10 w-full rounded-lg border border-border/60 bg-black/20 px-3 text-base font-bold text-foreground" />
                 </label>
                 <button type="button" onClick={suggestStations} disabled={suggestionLoading || !suggestionTime} className="mt-3 w-full rounded-xl bg-sky-500 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{suggestionLoading ? 'Finding available seats…' : 'Suggest seats'}</button>
                 {suggestionResults.length > 0 && <div className="grid grid-cols-2 gap-2"><p className="col-span-full text-xs font-semibold text-emerald-300">Suggested seats for {formatDuration(suggestionDuration)}</p>{suggestionResults.map((station) => <div key={station.id} className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 p-3 text-center text-sm font-bold text-emerald-200">{station.label}</div>)}</div>}
+                {suggestionMessage && <p className="rounded-xl border border-rose-400/40 bg-rose-400/10 p-3 text-center text-xs font-semibold text-rose-200">{suggestionMessage}</p>}
                 </div>
                 <div className="flex items-center justify-between border-t border-border/40 pt-3"><button type="button" onClick={() => setSuggestionStep((step) => Math.max(1, step - 1))} disabled={suggestionStep === 1 || suggestionLoading} className="rounded-lg border border-border/60 px-3 py-2 text-xs font-semibold text-muted-foreground disabled:opacity-40">Back</button><span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Step {suggestionStep} of 4</span></div>
               </div>
