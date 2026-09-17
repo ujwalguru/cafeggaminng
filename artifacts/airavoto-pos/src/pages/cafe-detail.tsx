@@ -886,6 +886,7 @@ export default function CafeDetail() {
 
             <div className="mb-4 flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" /> Available</span>
+              <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.78_0.16_85)]" /> Booked / upcoming</span>
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.55_0.16_25)]" /> Occupied</span>
             </div>
 
