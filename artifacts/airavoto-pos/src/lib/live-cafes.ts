@@ -332,7 +332,7 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
       }))
     : bookingsToday;
   const now = Date.now();
-  const occupiedByTime = bookingsUpcoming.some((booking) => {
+  const occupiedByTime = bookingsUpcoming.some((booking: { startTime: string | null; endTime: string | null; status: string }) => {
     const start = new Date(String(booking.startTime || "")).getTime();
     const end = new Date(String(booking.endTime || "")).getTime();
     return Number.isFinite(start) && Number.isFinite(end) && start <= now && end > now;
@@ -430,7 +430,7 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
                 ? "suspended"
                 : "online";
           const configuredDevices = Array.isArray(listing.configurations?.devices) ? listing.configurations.devices : [];
-          const correctedDevices = devices.map((liveDevice) => {
+          const correctedDevices = devices.map((liveDevice: LiveDeviceAvailability) => {
             const matchingConfigs = configuredDevices.filter((config: any) => inferDeviceType(config) === liveDevice.type);
             const configuredTotal = matchingConfigs.length === 1
               ? Math.max(0, Number(matchingConfigs[0]?.count ?? 1) || 1)

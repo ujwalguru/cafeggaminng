@@ -279,9 +279,8 @@ export default function CafeDetail() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [gameTab, setGameTab] = useState('PC');
-  const [stationTab, setStationTab] = useState<'available' | 'running' | 'booked'>('available');
+  const [stationTab, setStationTab] = useState<'seats' | 'booked'>('seats');
   const [bookingDateFilter, setBookingDateFilter] = useState(() => localDateKey(new Date()));
-  const [bookingTimeFilter, setBookingTimeFilter] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -346,14 +345,14 @@ export default function CafeDetail() {
     if (!Number.isFinite(start) || start <= Date.now()) return false;
     const date = new Date(start);
     if (bookingDateFilter && localDateKey(date) !== bookingDateFilter) return false;
-    if (bookingTimeFilter === 'current') return true;
-    if (bookingTimeFilter && date.toTimeString().slice(0, 5) < bookingTimeFilter) return false;
     return true;
   });
   const modalRunningStations = modalStations.filter((station) => !station.available && String(station.status || '').toLowerCase() !== 'scheduled');
   const modalBookedStations = modalStations.filter((station) => !modalRunningStations.includes(station) && futureBookingsFor(station).length > 0);
-  const modalAvailableStations = modalStations.filter((station) => !modalRunningStations.includes(station) && !modalBookedStations.includes(station));
-  const visibleModalStations = stationTab === 'running' ? modalRunningStations : stationTab === 'booked' ? modalBookedStations : modalAvailableStations;
+  // Future bookings do not make a seat unavailable right now. The green tab
+  // is based only on the red/currently occupied seats.
+  const modalAvailableStations = modalStations.filter((station) => !modalRunningStations.includes(station));
+  const visibleModalStations = stationTab === 'booked' ? modalBookedStations : modalStations;
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
   const happyHours = cafe?.happyHours ?? [];
   const happyHourPricing = cafe?.happyHourPricing ?? [];
@@ -939,21 +938,39 @@ export default function CafeDetail() {
 
             <div className="mb-4 grid grid-cols-3 gap-1 rounded-xl border border-border/60 bg-black/20 p-1">
               {([
-                ['available', `Available now (${modalAvailableStations.length})`],
-                ['running', `Running until (${modalRunningStations.length})`],
-                ['booked', `Booked / upcoming (${modalBookedStations.length})`],
+                ['seats', `Seats · ${modalAvailableStations.length} available · ${modalRunningStations.length} running`],
+                ['booked', `Booked · ${modalBookedStations.length}`],
               ] as const).map(([value, label]) => (
-                <button key={value} type="button" onClick={() => setStationTab(value)} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === value ? value === 'running' ? 'bg-rose-500/20 text-rose-300' : value === 'booked' ? 'bg-amber-400/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'}`}>
+                <button key={value} type="button" onClick={() => setStationTab(value)} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === value ? value === 'booked' ? 'bg-amber-400/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'}`}>
                   {label}
                 </button>
               ))}
             </div>
 
             {stationTab === 'booked' && (
-              <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                <label className="text-[11px] font-semibold text-muted-foreground">Booking date<input type="date" value={bookingDateFilter} min={localDateKey(new Date())} onChange={(event) => setBookingDateFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground" /></label>
-                <label className="text-[11px] font-semibold text-muted-foreground">Booking time<select value={bookingTimeFilter} onChange={(event) => setBookingTimeFilter(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-border/60 bg-black/20 px-2 text-xs text-foreground"><option value="current">Current time</option><option value="">Any time</option>{FIVE_MINUTE_TIME_SLOTS.map((slot) => <option key={slot} value={slot}>{formatTimeValue(slot)}</option>)}</select></label>
-                <button type="button" onClick={() => setBookingTimeFilter('')} className="self-end rounded-lg border border-border/60 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground">Any time</button>
+              <div className="mb-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Choose a date</p>
+                <div className="flex snap-x gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
+                  {Array.from({ length: 14 }, (_, index) => {
+                    const date = new Date();
+                    date.setHours(0, 0, 0, 0);
+                    date.setDate(date.getDate() + index);
+                    const key = localDateKey(date);
+                    const selected = bookingDateFilter === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setBookingDateFilter(key)}
+                        className={`min-w-[112px] snap-start rounded-2xl border px-4 py-3 text-left transition-colors ${selected ? 'border-[oklch(0.78_0.16_85)] bg-[oklch(0.78_0.16_85/0.22)] text-[oklch(0.96_0.20_85)]' : 'border-border/60 bg-black/20 text-muted-foreground hover:border-[oklch(0.78_0.16_85/0.55)] hover:text-foreground'}`}
+                      >
+                        <span className="block text-xs font-semibold">{index === 0 ? 'Today' : index === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                        <span className="mt-1 block text-xl font-extrabold leading-none">{date.toLocaleDateString('en-US', { day: 'numeric' })}</span>
+                        <span className="mt-1 block text-[11px] uppercase tracking-wide">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -961,33 +978,34 @@ export default function CafeDetail() {
               {visibleModalStations.map((s) => {
                 const upcomingBookings = futureBookingsFor(s);
                 const isOccupiedNow = !s.available && String(s.status || '').toLowerCase() !== 'scheduled';
-                const hasUpcoming = !isOccupiedNow && (String(s.status || '').toLowerCase() === 'scheduled' || upcomingBookings.length > 0);
+                const showBookedDetails = stationTab === 'booked';
                 return (
                   <div
                     key={s.id}
                     className={`rounded-xl border p-3 text-center ${
                       isOccupiedNow
                         ? 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
-                        : hasUpcoming
+                        : showBookedDetails
                         ? 'border-[oklch(0.78_0.16_85/0.65)] bg-[oklch(0.22_0.12_85/0.28)]'
                         : s.available
                           ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
                           : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                     }`}
                   >
-                    <p className={`text-sm font-bold ${isOccupiedNow ? 'text-[oklch(0.78_0.14_25)]' : hasUpcoming ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
-                    {upcomingBookings.length > 0 ? (
+                    <p className={`text-sm font-bold ${isOccupiedNow && !showBookedDetails ? 'text-[oklch(0.78_0.14_25)]' : showBookedDetails ? 'text-[oklch(0.90_0.18_85)]' : 'text-[oklch(0.80_0.16_150)]'}`}>{s.label}</p>
+                    {showBookedDetails && upcomingBookings.length > 0 ? (
                       <button type="button" className="mt-1 w-full space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)] underline-offset-2 hover:underline" onClick={() => setBookingDetail({ station: s.label, bookings: upcomingBookings })}>
                         <span className="block">{upcomingBookings.length} booking{upcomingBookings.length === 1 ? '' : 's'} · {formatBookingDate(upcomingBookings[0].startTime)}</span>
                         {upcomingBookings.slice(0, 2).map((booking, index) => <span className="block" key={`${booking.startTime}-${index}`}>{formatBookingDate(booking.startTime)} · {formatBookingRange(booking.startTime, booking.endTime)}</span>)}
                       </button>
-                    ) : hasUpcoming ? (
-                      <p className="mt-1 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">Booked · {formatBookingDate(s.startTime ?? null)} · {formatOccupiedUntil(s.startTime ?? null)}</p>
-                    ) : s.available ? (
-                      <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>
-                    ) : (
+                    ) : !showBookedDetails && isOccupiedNow ? (
                       <p className="mt-1 text-[10px] font-medium leading-tight text-[oklch(0.78_0.14_25)]">{formatOccupiedUntil(s.occupiedUntil)}</p>
-                    )}
+                    ) : !showBookedDetails ? (
+                      <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>
+                    ) : showBookedDetails ? (
+                      <p className="mt-1 text-[10px] font-medium text-muted-foreground">No booking on this date</p>
+                    ) : null
+                    }
                   </div>
                 );
               })}
