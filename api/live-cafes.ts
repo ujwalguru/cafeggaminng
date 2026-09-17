@@ -117,7 +117,7 @@ function minimizeListing(listing: any) {
     availability: availability.slice(0, 30).map((device: any) => ({
       type: safeString(device?.type ?? device?.category ?? device?.name, 80),
       category: safeString(device?.category, 80),
-      total: Math.max(0, safeNumber(device?.total)),
+      total: Math.max(0, safeNumber(device?.total), Array.isArray(device?.seats) ? device.seats.length : 0),
       available: Math.max(0, safeNumber(device?.available)),
       seats: Array.isArray(device?.seats)
         ? device.seats.slice(0, 200).map((seat: any, index: number) => ({
@@ -155,6 +155,14 @@ function minimizeListing(listing: any) {
         : [],
     })),
     configurations: {
+      devices: Array.isArray(listing?.configurations?.devices)
+        ? listing.configurations.devices.slice(0, 200).map((device: any) => ({
+            category: safeString(device?.category ?? device?.type, 80),
+            name: safeString(device?.name ?? device?.seat_name ?? device?.seatName, 100),
+            count: Math.max(0, safeNumber(device?.count)),
+            enabled: device?.enabled !== false,
+          }))
+        : [],
       pricing: Array.isArray(listing?.configurations?.pricing)
         ? listing.configurations.pricing.slice(0, 100)
         : [],

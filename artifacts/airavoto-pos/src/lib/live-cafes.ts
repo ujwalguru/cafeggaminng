@@ -316,9 +316,23 @@ function normalizeHappyHourPricing(value: unknown): CafeHappyHourPricing[] {
 }
 
 function normalizeSeat(seat: any, index: number): LiveSeat {
-  const available =
+  const bookingsToday = Array.isArray(seat?.bookingsToday)
+    ? seat.bookingsToday.map((booking: any) => ({
+        startTime: booking?.startTime ?? booking?.start_time ?? null,
+        endTime: booking?.endTime ?? booking?.end_time ?? null,
+        status: String(booking?.status ?? "upcoming"),
+      }))
+    : [];
+  const now = Date.now();
+  const occupiedByTime = bookingsToday.some((booking) => {
+    const start = new Date(String(booking.startTime || "")).getTime();
+    const end = new Date(String(booking.endTime || "")).getTime();
+    return Number.isFinite(start) && Number.isFinite(end) && start <= now && end > now;
+  });
+  const available = !occupiedByTime && (
     seat?.available === true ||
-    String(seat?.status || "").toLowerCase() === "available";
+    String(seat?.status || "").toLowerCase() === "available"
+  );
   return {
     id: String(seat?.id ?? seat?.seatId ?? seat?.seat_name ?? index + 1),
     label: String(
@@ -329,17 +343,11 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
         `Seat ${index + 1}`,
     ),
     available,
-    status: String(seat?.status ?? (available ? "available" : "in_use")),
+    status: occupiedByTime ? "in_use" : String(seat?.status ?? (available ? "available" : "in_use")),
     startTime: seat?.startTime ?? seat?.start_time ?? null,
     occupiedUntil:
       seat?.occupiedUntil ?? seat?.endTime ?? seat?.end_time ?? null,
-    bookingsToday: Array.isArray(seat?.bookingsToday)
-      ? seat.bookingsToday.map((booking: any) => ({
-          startTime: booking?.startTime ?? booking?.start_time ?? null,
-          endTime: booking?.endTime ?? booking?.end_time ?? null,
-          status: String(booking?.status ?? "upcoming"),
-        }))
-      : [],
+    bookingsToday,
   };
 }
 
