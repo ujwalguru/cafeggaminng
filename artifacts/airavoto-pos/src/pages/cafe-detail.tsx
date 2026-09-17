@@ -297,8 +297,8 @@ export default function CafeDetail() {
   const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
   const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [] });
-  const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)) : buildStations('PC', pcTotal, pcAvail, seed);
-  const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map(mapLiveSeat)) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
+  const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)).slice(0, pcTotal) : buildStations('PC', pcTotal, pcAvail, seed);
+  const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map(mapLiveSeat)).slice(0, ps5Total) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const selectedDevice = stationModal ? liveSnapshot?.devices.find((device) => device.type === stationModal) : null;
   const modalStations = stationModal === 'PC'
     ? pcStations
