@@ -279,8 +279,13 @@ export default function CafeDetail() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [gameTab, setGameTab] = useState('PC');
-  const [stationTab, setStationTab] = useState<'seats' | 'booked'>('seats');
+  const [stationTab, setStationTab] = useState<'seats' | 'booked' | 'suggestion'>('seats');
   const [bookingDateFilter, setBookingDateFilter] = useState(() => localDateKey(new Date()));
+  const [suggestionDate, setSuggestionDate] = useState(() => localDateKey(new Date()));
+  const [suggestionDuration, setSuggestionDuration] = useState(60);
+  const [suggestionSeatCount, setSuggestionSeatCount] = useState(1);
+  const [suggestionResults, setSuggestionResults] = useState<Station[]>([]);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -353,6 +358,28 @@ export default function CafeDetail() {
   // is based only on the red/currently occupied seats.
   const modalAvailableStations = modalStations.filter((station) => !modalRunningStations.includes(station));
   const visibleModalStations = stationTab === 'booked' ? modalBookedStations : modalStations;
+  const suggestionDates = Array.from({ length: 14 }, (_, index) => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + index);
+    return date;
+  });
+  const suggestionDurationOptions = [30, 60, 90, 120, 180];
+  const bookingsForStation = (station: Station) => [...(station.bookingsToday ?? []), ...(station.bookingsUpcoming ?? [])].filter((booking, index, rows) => rows.findIndex((candidate) => candidate.startTime === booking.startTime && candidate.endTime === booking.endTime) === index);
+  const suggestStations = async () => {
+    setSuggestionLoading(true);
+    setSuggestionResults([]);
+    await new Promise((resolve) => window.setTimeout(resolve, 450));
+    const start = new Date(`${suggestionDate}T${suggestionDate === localDateKey(new Date()) ? new Date().toTimeString().slice(0, 5) : '09:00'}:00`);
+    const end = new Date(start.getTime() + suggestionDuration * 60_000);
+    const available = modalStations.filter((station) => bookingsForStation(station).every((booking) => {
+      const bookingStart = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
+      const bookingEnd = booking.endTime ? new Date(booking.endTime).getTime() : NaN;
+      return !Number.isFinite(bookingStart) || !Number.isFinite(bookingEnd) || bookingEnd <= start.getTime() || bookingStart >= end.getTime();
+    }));
+    setSuggestionResults(available.slice(0, Math.max(1, suggestionSeatCount)));
+    setSuggestionLoading(false);
+  };
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
   const happyHours = cafe?.happyHours ?? [];
   const happyHourPricing = cafe?.happyHourPricing ?? [];
@@ -945,6 +972,7 @@ export default function CafeDetail() {
                   {label}
                 </button>
               ))}
+              <button type="button" onClick={() => setStationTab('suggestion')} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === 'suggestion' ? 'bg-sky-400/20 text-sky-200' : 'text-muted-foreground hover:text-foreground'}`}>Suggestion</button>
             </div>
 
             {stationTab === 'booked' && (
@@ -974,7 +1002,34 @@ export default function CafeDetail() {
               </div>
             )}
 
-            <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
+            {stationTab === 'suggestion' && (
+              <div className="mb-4 space-y-4 rounded-2xl border border-sky-400/40 bg-sky-400/5 p-4">
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Choose a date</p>
+                  <div className="flex snap-x gap-2 overflow-x-auto pb-2">
+                    {suggestionDates.map((date, index) => {
+                      const key = localDateKey(date);
+                      const selected = suggestionDate === key;
+                      return <button key={key} type="button" onClick={() => setSuggestionDate(key)} className={`min-w-[100px] snap-start rounded-2xl border px-3 py-2 text-left ${selected ? 'border-sky-300 bg-sky-400/20 text-sky-100' : 'border-border/60 bg-black/20 text-muted-foreground'}`}><span className="block text-xs font-semibold">{index === 0 ? 'Today' : index === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { weekday: 'short' })}</span><span className="mt-1 block text-lg font-extrabold">{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></button>;
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Play duration</p>
+                  <div className="flex snap-x gap-2 overflow-x-auto pb-1">
+                    {suggestionDurationOptions.map((minutes) => <button key={minutes} type="button" onClick={() => setSuggestionDuration(minutes)} className={`shrink-0 rounded-xl border px-4 py-2 text-sm font-bold ${suggestionDuration === minutes ? 'border-sky-300 bg-sky-400/20 text-sky-100' : 'border-border/60 bg-black/20 text-muted-foreground'}`}>{formatDuration(minutes)}</button>)}
+                  </div>
+                </div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">How many seats?
+                  <input type="number" min={1} max={modalStations.length || 1} value={suggestionSeatCount} onChange={(event) => setSuggestionSeatCount(Math.min(modalStations.length || 1, Math.max(1, Number(event.target.value) || 1)))} className="mt-2 h-10 w-full rounded-lg border border-border/60 bg-black/20 px-3 text-base font-bold text-foreground" />
+                </label>
+                <button type="button" onClick={suggestStations} disabled={suggestionLoading} className="w-full rounded-xl bg-sky-500 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{suggestionLoading ? 'Finding available seats…' : 'Suggest seats'}</button>
+                {suggestionResults.length > 0 && <div className="grid grid-cols-2 gap-2"><p className="col-span-full text-xs font-semibold text-emerald-300">Suggested seats for {formatDuration(suggestionDuration)}</p>{suggestionResults.map((station) => <div key={station.id} className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 p-3 text-center text-sm font-bold text-emerald-200">{station.label}</div>)}</div>}
+                {!suggestionLoading && suggestionResults.length === 0 && <p className="text-center text-xs text-muted-foreground">Choose date, duration, and seat count, then tap Suggest seats.</p>}
+              </div>
+            )}
+
+            {stationTab !== 'suggestion' && <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
               {visibleModalStations.map((s) => {
                 const upcomingBookings = futureBookingsFor(s);
                 const isOccupiedNow = !s.available && String(s.status || '').toLowerCase() !== 'scheduled';
@@ -1009,7 +1064,7 @@ export default function CafeDetail() {
                   </div>
                 );
               })}
-            </div>
+            </div>}
 
             <p className="mt-4 text-center text-xs text-muted-foreground">Call the cafe to reserve a specific station</p>
           </div>
