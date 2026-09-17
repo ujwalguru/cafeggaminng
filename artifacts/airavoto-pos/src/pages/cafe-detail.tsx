@@ -890,20 +890,23 @@ export default function CafeDetail() {
 
             <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
               {modalStations.map((s) => {
-                const upcomingToday = String(s.status || '').toLowerCase() === 'scheduled' && isToday(s.startTime);
                 const upcomingBookings = (s.bookingsToday ?? []).filter((booking) => isToday(booking.startTime));
+                const isOccupiedNow = !s.available && String(s.status || '').toLowerCase() !== 'scheduled';
+                const upcomingToday = !isOccupiedNow && (String(s.status || '').toLowerCase() === 'scheduled' || upcomingBookings.length > 0) && isToday(s.startTime);
                 return (
                   <div
                     key={s.id}
                     className={`rounded-xl border p-3 text-center ${
-                      upcomingToday
+                      isOccupiedNow
+                        ? 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
+                        : upcomingToday
                         ? 'border-[oklch(0.78_0.16_85/0.65)] bg-[oklch(0.22_0.12_85/0.28)]'
                         : s.available
                           ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
                           : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                     }`}
                   >
-                    <p className={`text-sm font-bold ${upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
+                    <p className={`text-sm font-bold ${isOccupiedNow ? 'text-foreground' : upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
                     {upcomingBookings.length > 0 ? (
                       <div className="mt-1 space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">
                         <p>{upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} today</p>
