@@ -17,7 +17,7 @@ import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = string;
-interface Station { id: number; label: string; available: boolean; status?: string; startTime?: string | null; occupiedUntil: string | null; bookingsToday?: Array<{ startTime: string | null; endTime: string | null; status: string }> }
+interface Station { id: number; label: string; available: boolean; status?: string; startTime?: string | null; occupiedUntil: string | null; bookingsToday?: Array<{ startTime: string | null; endTime: string | null; status: string }>; bookingsUpcoming?: Array<{ startTime: string | null; endTime: string | null; status: string }> }
 
 function stationKey(label: string) {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -46,6 +46,17 @@ function formatBookingRange(startTime: string | null, endTime: string | null) {
   if (!start || Number.isNaN(start.getTime())) return 'Upcoming booking';
   const format = (value: Date) => value.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   return `${format(start)} – ${end && !Number.isNaN(end.getTime()) ? format(end) : 'later'}`;
+}
+
+function formatBookingDate(value: string | null) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return 'Upcoming';
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function formatHour(value: string) {
@@ -248,6 +259,7 @@ export default function CafeDetail() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [gameTab, setGameTab] = useState('PC');
+  const [stationTab, setStationTab] = useState<'available' | 'running' | 'booked'>('available');
 
   useEffect(() => {
     let cancelled = false;
@@ -296,7 +308,7 @@ export default function CafeDetail() {
   const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
   const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
-  const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [] });
+  const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [], bookingsUpcoming: seat.bookingsUpcoming ?? [] });
   const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)).slice(0, pcTotal) : buildStations('PC', pcTotal, pcAvail, seed);
   const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map(mapLiveSeat)).slice(0, ps5Total) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
   const selectedDevice = stationModal ? liveSnapshot?.devices.find((device) => device.type === stationModal) : null;
@@ -307,6 +319,14 @@ export default function CafeDetail() {
       : (selectedDevice?.seats ?? []).map(mapLiveSeat);
   const modalAvail = stationModal === 'PC' ? pcAvail : stationModal === 'PS5' ? ps5Avail : (selectedDevice?.available ?? 0);
   const modalTotal = stationModal === 'PC' ? pcTotal : stationModal === 'PS5' ? ps5Total : (selectedDevice?.total ?? 0);
+  const futureBookingsFor = (station: Station) => (station.bookingsUpcoming?.length ? station.bookingsUpcoming : station.bookingsToday ?? []).filter((booking) => {
+    const start = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
+    return Number.isFinite(start) && start > Date.now();
+  });
+  const modalRunningStations = modalStations.filter((station) => !station.available && String(station.status || '').toLowerCase() !== 'scheduled');
+  const modalBookedStations = modalStations.filter((station) => !modalRunningStations.includes(station) && futureBookingsFor(station).length > 0);
+  const modalAvailableStations = modalStations.filter((station) => !modalRunningStations.includes(station) && !modalBookedStations.includes(station));
+  const visibleModalStations = stationTab === 'running' ? modalRunningStations : stationTab === 'booked' ? modalBookedStations : modalAvailableStations;
   const isLive = liveSnapshot?.status === 'online' && !liveSnapshot.is_stale;
   const happyHours = cafe?.happyHours ?? [];
   const happyHourPricing = cafe?.happyHourPricing ?? [];
@@ -890,32 +910,44 @@ export default function CafeDetail() {
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[oklch(0.55_0.16_25)]" /> Occupied</span>
             </div>
 
+            <div className="mb-4 grid grid-cols-3 gap-1 rounded-xl border border-border/60 bg-black/20 p-1">
+              {([
+                ['available', `Available now (${modalAvailableStations.length})`],
+                ['running', `Running until (${modalRunningStations.length})`],
+                ['booked', `Booked / upcoming (${modalBookedStations.length})`],
+              ] as const).map(([value, label]) => (
+                <button key={value} type="button" onClick={() => setStationTab(value)} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === value ? value === 'running' ? 'bg-rose-500/20 text-rose-300' : value === 'booked' ? 'bg-amber-400/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
-              {modalStations.map((s) => {
-                const upcomingBookings = (s.bookingsToday ?? []).filter((booking) => isToday(booking.startTime));
+              {visibleModalStations.map((s) => {
+                const upcomingBookings = futureBookingsFor(s);
                 const isOccupiedNow = !s.available && String(s.status || '').toLowerCase() !== 'scheduled';
-                const upcomingToday = !isOccupiedNow && (String(s.status || '').toLowerCase() === 'scheduled' || upcomingBookings.length > 0) && isToday(s.startTime);
+                const hasUpcoming = !isOccupiedNow && (String(s.status || '').toLowerCase() === 'scheduled' || upcomingBookings.length > 0);
                 return (
                   <div
                     key={s.id}
                     className={`rounded-xl border p-3 text-center ${
                       isOccupiedNow
                         ? 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
-                        : upcomingToday
+                        : hasUpcoming
                         ? 'border-[oklch(0.78_0.16_85/0.65)] bg-[oklch(0.22_0.12_85/0.28)]'
                         : s.available
                           ? 'border-[oklch(0.55_0.18_150/0.5)] bg-[oklch(0.18_0.06_150/0.25)]'
                           : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                     }`}
                   >
-                    <p className={`text-sm font-bold ${isOccupiedNow ? 'text-[oklch(0.78_0.14_25)]' : upcomingToday ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
+                    <p className={`text-sm font-bold ${isOccupiedNow ? 'text-[oklch(0.78_0.14_25)]' : hasUpcoming ? 'text-[oklch(0.90_0.18_85)]' : s.available ? 'text-[oklch(0.80_0.16_150)]' : 'text-foreground'}`}>{s.label}</p>
                     {upcomingBookings.length > 0 ? (
                       <button type="button" className="mt-1 w-full space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)] underline-offset-2 hover:underline" onClick={() => setBookingDetail({ station: s.label, bookings: upcomingBookings })}>
-                        <span className="block">{upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} today</span>
-                        {upcomingBookings.map((booking, index) => <span className="block" key={`${booking.startTime}-${index}`}>{formatBookingRange(booking.startTime, booking.endTime)}</span>)}
+                        <span className="block">{upcomingBookings.length} booking{upcomingBookings.length === 1 ? '' : 's'} · {formatBookingDate(upcomingBookings[0].startTime)}</span>
+                        {upcomingBookings.slice(0, 2).map((booking, index) => <span className="block" key={`${booking.startTime}-${index}`}>{formatBookingDate(booking.startTime)} · {formatBookingRange(booking.startTime, booking.endTime)}</span>)}
                       </button>
-                    ) : upcomingToday ? (
-                      <p className="mt-1 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">Booked today · {formatOccupiedUntil(s.startTime ?? null)}</p>
+                    ) : hasUpcoming ? (
+                      <p className="mt-1 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)]">Booked · {formatBookingDate(s.startTime ?? null)} · {formatOccupiedUntil(s.startTime ?? null)}</p>
                     ) : s.available ? (
                       <p className="mt-1 text-[10px] font-medium text-[oklch(0.72_0.18_150)]">Available now</p>
                     ) : (
@@ -936,11 +968,11 @@ export default function CafeDetail() {
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
           <div className="relative z-10 max-h-[88vh] w-full max-w-md overflow-y-auto rounded-3xl border border-[oklch(0.78_0.16_85/0.55)] bg-[oklch(0.13_0.02_265)] p-5 shadow-2xl sm:p-6" onClick={(event) => event.stopPropagation()}>
             <div className="mb-5 flex items-start justify-between gap-3">
-              <div><p className="text-xs font-semibold uppercase tracking-wider text-[oklch(0.90_0.18_85)]">Today’s upcoming bookings</p><h3 className="mt-1 text-xl font-bold">{bookingDetail.station}</h3></div>
+              <div><p className="text-xs font-semibold uppercase tracking-wider text-[oklch(0.90_0.18_85)]">Upcoming bookings · Today / Tomorrow</p><h3 className="mt-1 text-xl font-bold">{bookingDetail.station}</h3></div>
               <button type="button" onClick={() => setBookingDetail(null)} className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground" aria-label="Close booking details"><X className="size-4" /></button>
             </div>
             <div className="space-y-3">
-              {bookingDetail.bookings.map((booking, index) => <div key={`${booking.startTime}-${index}`} className="rounded-2xl border border-[oklch(0.78_0.16_85/0.45)] bg-[oklch(0.22_0.12_85/0.2)] p-4"><p className="font-semibold text-[oklch(0.92_0.18_85)]">Booking {index + 1}</p><p className="mt-1 text-sm text-foreground">{formatBookingRange(booking.startTime, booking.endTime)}</p><p className="mt-1 text-xs capitalize text-muted-foreground">{booking.status || 'upcoming'}</p></div>)}
+              {bookingDetail.bookings.map((booking, index) => <div key={`${booking.startTime}-${index}`} className="rounded-2xl border border-[oklch(0.78_0.16_85/0.45)] bg-[oklch(0.22_0.12_85/0.2)] p-4"><p className="font-semibold text-[oklch(0.92_0.18_85)]">Booking {index + 1}</p><p className="mt-1 text-sm font-semibold text-foreground">{formatBookingDate(booking.startTime)}</p><p className="mt-1 text-sm text-foreground">{formatBookingRange(booking.startTime, booking.endTime)}</p><p className="mt-1 text-xs capitalize text-muted-foreground">{booking.status || 'upcoming'}</p></div>)}
             </div>
             <p className="mt-5 text-center text-xs text-muted-foreground">This seat is currently occupied when shown in red.</p>
           </div>

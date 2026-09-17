@@ -13,6 +13,7 @@ export interface LiveSeat {
   startTime?: string | null;
   occupiedUntil?: string | null;
   bookingsToday?: Array<{ startTime: string | null; endTime: string | null; status: string }>;
+  bookingsUpcoming?: Array<{ startTime: string | null; endTime: string | null; status: string }>;
 }
 
 export interface LiveDeviceAvailability {
@@ -323,8 +324,15 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
         status: String(booking?.status ?? "upcoming"),
       }))
     : [];
+  const bookingsUpcoming = Array.isArray(seat?.bookingsUpcoming)
+    ? seat.bookingsUpcoming.map((booking: any) => ({
+        startTime: booking?.startTime ?? booking?.start_time ?? null,
+        endTime: booking?.endTime ?? booking?.end_time ?? null,
+        status: String(booking?.status ?? "upcoming"),
+      }))
+    : bookingsToday;
   const now = Date.now();
-  const occupiedByTime = bookingsToday.some((booking) => {
+  const occupiedByTime = bookingsUpcoming.some((booking) => {
     const start = new Date(String(booking.startTime || "")).getTime();
     const end = new Date(String(booking.endTime || "")).getTime();
     return Number.isFinite(start) && Number.isFinite(end) && start <= now && end > now;
@@ -348,6 +356,7 @@ function normalizeSeat(seat: any, index: number): LiveSeat {
     occupiedUntil:
       seat?.occupiedUntil ?? seat?.endTime ?? seat?.end_time ?? null,
     bookingsToday,
+    bookingsUpcoming,
   };
 }
 

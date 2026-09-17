@@ -141,6 +141,13 @@ function minimizeListing(listing: any) {
                   status: safeString(booking?.status, 40),
                 }))
               : [],
+            bookingsUpcoming: Array.isArray(seat?.bookingsUpcoming)
+              ? seat.bookingsUpcoming.slice(0, 48).map((booking: any) => ({
+                  startTime: safeString(booking?.startTime ?? booking?.start_time, 80),
+                  endTime: safeString(booking?.endTime ?? booking?.end_time, 80),
+                  status: safeString(booking?.status, 40),
+                }))
+              : [],
             startTime:
               safeString(
                 seat?.startTime ?? seat?.start_time,
