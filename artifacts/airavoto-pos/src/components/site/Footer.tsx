@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'wouter';
 import { MapPin } from 'lucide-react';
 import { MobileBottomNav } from '@/components/site/MobileBottomNav';
@@ -22,42 +21,8 @@ const COMPANY = [
 ];
 
 export function Footer() {
-  const [email, setEmail] = useState('');
-  const [notified, setNotified] = useState(false);
-
-  function handleNotify(event: React.FormEvent) {
-    event.preventDefault();
-    if (email.trim()) setNotified(true);
-  }
-
   return (
     <>
-      {/* Light newsletter area from the reference layout. */}
-      <section className="bg-white px-5 py-14 text-zinc-950 sm:py-20">
-        <div className="mx-auto max-w-xl text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-zinc-500">Airavoto Cafe updates</p>
-          <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">Subscribe to our newsletter</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-500">Get new gaming cafes, tournaments, and special offers delivered to your inbox.</p>
-          <form onSubmit={handleNotify} className="mx-auto mt-6 flex max-w-md overflow-hidden rounded-full border border-zinc-300 bg-zinc-50 p-1 shadow-sm">
-            {notified ? (
-              <p className="w-full px-4 py-2.5 text-center text-sm font-semibold text-emerald-700">You’re on the list.</p>
-            ) : (
-              <>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  required
-                  placeholder="Enter your email"
-                  className="min-w-0 flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-zinc-400"
-                />
-                <button type="submit" className="rounded-full bg-zinc-950 px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-zinc-700">Get started</button>
-              </>
-            )}
-          </form>
-        </div>
-      </section>
-
       <footer className="border-t border-white/10 bg-black text-white">
         <div className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:pt-14">
           {/* Floating CTA panel */}
