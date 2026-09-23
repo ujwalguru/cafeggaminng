@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'wouter';
 import { MapPin } from 'lucide-react';
 import { MobileBottomNav } from '@/components/site/MobileBottomNav';
+import { PageVisitDisplay } from '@/components/site/PageVisitDisplay';
 
 const DISCOVER = [
   { label: 'Browse all cafes', to: '/cafes' },
@@ -129,6 +130,10 @@ export function Footer() {
             ))}
           </ul>
         </div>
+      </div>
+
+      <div className="mx-auto flex max-w-6xl justify-center px-5 pb-8">
+        <PageVisitDisplay />
       </div>
 
       {/* Bottom bar */}
