@@ -25,17 +25,6 @@ export function Footer() {
     <>
       <footer className="border-t border-white/10 bg-black text-white">
         <div className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:pt-14">
-          {/* Floating CTA panel */}
-          <div className="relative mb-12 overflow-hidden rounded-2xl border border-white/15 bg-[radial-gradient(circle_at_85%_30%,rgba(34,211,238,0.18),transparent_30%),linear-gradient(120deg,#111113,#050506)] px-6 py-8 shadow-[0_18px_50px_rgba(0,0,0,0.45)] sm:px-10 sm:py-10">
-            <div className="pointer-events-none absolute -right-12 -top-24 size-64 rounded-full border border-cyan-300/30 shadow-[0_0_50px_rgba(34,211,238,0.16)]" />
-            <div className="relative max-w-md">
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300">Find your next arena</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">Experience superior gaming.</h2>
-              <p className="mt-2 text-sm leading-relaxed text-white/55">Compare real-time availability and discover the perfect PC, console, VR, or racing setup near you.</p>
-              <Link href="/cafes" className="mt-5 inline-flex rounded-full bg-white px-5 py-2.5 text-xs font-bold text-black transition-transform hover:scale-105">Find a cafe</Link>
-            </div>
-          </div>
-
           <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1.2fr_1fr]">
             <div>
               <Link href="/" className="flex items-center gap-2.5">
