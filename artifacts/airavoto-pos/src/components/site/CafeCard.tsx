@@ -63,9 +63,11 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
             </span>
           )}
 
-          <span className="absolute right-3 top-3">
-            <LiveViewerBadge slug={cafe.slug} compact />
-          </span>
+          {live?.status === 'online' && !live.is_stale && (
+            <span className="absolute right-3 top-3">
+              <LiveViewerBadge slug={cafe.slug} compact />
+            </span>
+          )}
 
           {/* Category device icons */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
