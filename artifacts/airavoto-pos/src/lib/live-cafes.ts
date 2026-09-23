@@ -435,8 +435,11 @@ export async function fetchLiveCafes(): Promise<LiveCafeSnapshot[]> {
           const configuredDevices = Array.isArray(listing.configurations?.devices) ? listing.configurations.devices : [];
           const correctedDevices = devices.map((liveDevice: LiveDeviceAvailability) => {
             const matchingConfigs = configuredDevices.filter((config: any) => inferDeviceType(config) === liveDevice.type);
+            const configuredCount = matchingConfigs.length === 1 ? Number(matchingConfigs[0]?.count) : NaN;
+            // A saved count of 0 means the category was removed or disabled.
+            // Do not use `count || 1`, because that resurrects deleted devices.
             const configuredTotal = matchingConfigs.length === 1
-              ? Math.max(0, Number(matchingConfigs[0]?.count ?? 1) || 1)
+              ? (Number.isFinite(configuredCount) ? Math.max(0, configuredCount) : 1)
               : matchingConfigs.length;
             const correctedTotal = liveDevice.total > 0 ? liveDevice.total : configuredTotal;
             return correctedTotal !== liveDevice.total

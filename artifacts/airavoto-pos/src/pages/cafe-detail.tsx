@@ -332,11 +332,17 @@ export default function CafeDetail() {
   const hasConsole = cafe?.categories.includes('Console') ?? false;
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
-  const otherLiveDevices = liveSnapshot?.devices.filter((device) => device.type !== 'PC' && device.type !== 'PS5') ?? [];
-  const pcTotal    = livePc?.total ?? (hasConsole ? Math.round((cafe?.totalSeats ?? 0) * 0.65) : (cafe?.totalSeats ?? 0));
-  const ps5Total   = livePs5?.total ?? (hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0);
-  const pcAvail    = livePc?.available ?? (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
-  const ps5Avail   = livePs5?.available ?? (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
+  const otherLiveDevices = liveSnapshot?.devices.filter((device) => device.type !== 'PC' && device.type !== 'PS5' && Number(device.total) > 0) ?? [];
+  // Once a live snapshot exists, its device rows are authoritative. Do not
+  // rebuild a deleted category from aggregate cafe totals when the POS sends
+  // no row (or sends an explicit total of 0).
+  const hasLiveSnapshot = Boolean(liveSnapshot);
+  const pcTotal    = hasLiveSnapshot ? (livePc?.total ?? 0) : (hasConsole ? Math.round((cafe?.totalSeats ?? 0) * 0.65) : (cafe?.totalSeats ?? 0));
+  const ps5Total   = hasLiveSnapshot ? (livePs5?.total ?? 0) : (hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0);
+  const pcAvail    = hasLiveSnapshot ? (livePc?.available ?? 0) : (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
+  const ps5Avail   = hasLiveSnapshot ? (livePs5?.available ?? 0) : (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
+  const showPcAvailability = pcTotal > 0;
+  const showPs5Availability = hasConsole && ps5Total > 0;
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
   const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [], bookingsUpcoming: seat.bookingsUpcoming ?? [] });
   const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)).slice(0, pcTotal) : buildStations('PC', pcTotal, pcAvail, seed);
@@ -492,8 +498,8 @@ export default function CafeDetail() {
           {isLive ? 'Updated live' : liveError ? 'Live data unavailable' : 'Waiting for POS'}
         </span>
       </div>
-      <div className={`grid gap-3 ${hasConsole || otherLiveDevices.length > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-      <button
+      <div className={`grid gap-3 ${[showPcAvailability, showPs5Availability, otherLiveDevices.length > 0].filter(Boolean).length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      {showPcAvailability && <button
         onClick={() => setStationModal('PC')}
         className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
       >
@@ -513,9 +519,9 @@ export default function CafeDetail() {
           <div className="h-full rounded-full transition-all" style={{ width: `${(pcAvail / pcTotal) * 100}%`, background: pcAvail > 3 ? 'oklch(0.72 0.18 150)' : pcAvail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
         </div>
         <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
-      </button>
+      </button>}
 
-      {hasConsole && (
+      {showPs5Availability && (
         <button
           onClick={() => setStationModal('PS5')}
           className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
