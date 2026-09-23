@@ -96,7 +96,7 @@ export default function Home() {
     const params = new URLSearchParams();
     if (locationQ.trim()) params.set('q', locationQ.trim());
     if (deviceQ.trim()) params.set('q', `${locationQ.trim()} ${deviceQ.trim()}`.trim());
-    navigate(`/cafes${params.toString() ? `?${params}` : ''}`);
+    navigate(`/explore${params.toString() ? `?${params}` : ''}`);
   }
 
   return (
@@ -187,7 +187,7 @@ export default function Home() {
             {POPULAR.map((city) => (
               <Link
                 key={city}
-                href={`/cafes?city=${encodeURIComponent(city)}`}
+                href={`/explore?city=${encodeURIComponent(city)}`}
                 className="rounded-full border border-border/50 px-3 py-1 text-[12px] text-muted-foreground transition-colors hover:border-border hover:text-foreground"
               >
                 {city}
@@ -204,7 +204,7 @@ export default function Home() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Featured</p>
             <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Top-rated near you</h2>
           </div>
-          <Link href="/cafes" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+          <Link href="/explore" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
             View all <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -226,7 +226,7 @@ export default function Home() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Highest Rated</p>
             <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Gamers' favourites</h2>
           </div>
-          <Link href="/cafes" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+          <Link href="/explore" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
             See all <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -272,7 +272,7 @@ export default function Home() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Browse</p>
             <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Find cafes by city</h2>
           </div>
-          <Link href="/cafes" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+          <Link href="/explore" className="flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
             All cities <ChevronRight className="size-4" />
           </Link>
         </div>
@@ -282,7 +282,7 @@ export default function Home() {
             return (
               <Link
                 key={city}
-                href={`/cafes?city=${encodeURIComponent(city)}`}
+                href={`/explore?city=${encodeURIComponent(city)}`}
                 className="group flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-card py-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:bg-[oklch(0.18_0_0)]"
               >
                 <span className="text-4xl font-black text-foreground/80 transition-colors group-hover:text-foreground">
@@ -315,7 +315,7 @@ export default function Home() {
               List your cafe free
             </Link>
             <Link
-              href="/cafes"
+              href="/explore"
               className="flex items-center gap-1.5 rounded-full border border-border/60 px-7 py-3 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Browse cafes <ArrowRight className="size-4" />

@@ -602,7 +602,7 @@ export default function CafeDetail() {
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         {/* Back button — stays at the top on both mobile and desktop */}
         <Link
-          href="/cafes"
+          href="/explore"
           className="absolute left-4 top-4 flex size-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 lg:size-auto lg:gap-1.5 lg:border lg:px-4 lg:py-2 lg:text-sm lg:font-medium"
         >
           <ArrowLeft className="size-4" />
@@ -948,7 +948,7 @@ export default function CafeDetail() {
           <section className="mt-12 sm:mt-16">
             <div className="mb-5 flex items-center justify-between sm:mb-6">
               <h2 className="text-lg font-bold sm:text-xl">More Cafes You May Like</h2>
-              <Link href="/cafes" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+              <Link href="/explore" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
                 View all <ChevronRight className="size-4" />
               </Link>
             </div>

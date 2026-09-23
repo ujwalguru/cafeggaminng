@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 
 const NAV_ITEMS = [
   { label: 'Home', to: '/', icon: Home },
-  { label: 'Explore', to: '/cafes', icon: Search },
+  { label: 'Explore', to: '/explore', icon: Search },
   { label: 'Tournaments', to: '/tournaments', icon: Trophy },
 ];
 

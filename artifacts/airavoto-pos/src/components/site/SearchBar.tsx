@@ -48,7 +48,7 @@ export function SearchBar({
       if (query) params.set('q', query);
       if (city) params.set('city', city);
       if (category) params.set('cat', category);
-      navigate(`/cafes${params.toString() ? `?${params}` : ''}`);
+      navigate(`/explore${params.toString() ? `?${params}` : ''}`);
     }
     setCityOpen(false);
     setCatOpen(false);

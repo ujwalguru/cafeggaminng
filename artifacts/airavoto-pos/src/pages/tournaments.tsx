@@ -36,7 +36,7 @@ export default function Tournaments() {
             <div className="panel p-4"><Users className="size-5 text-primary" /><p className="mt-3 text-sm font-medium">Play together</p><p className="mt-1 text-xs text-muted-foreground">Meet local players.</p></div>
             <div className="panel p-4"><Trophy className="size-5 text-primary" /><p className="mt-3 text-sm font-medium">Win prizes</p><p className="mt-1 text-xs text-muted-foreground">Compete for glory.</p></div>
           </div>
-          <Link href="/cafes" className="mt-10 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+          <Link href="/explore" className="mt-10 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
             Explore cafes <ArrowRight className="size-4" />
           </Link>
         </div>

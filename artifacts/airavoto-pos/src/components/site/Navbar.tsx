@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { Search, Menu, X, Instagram, Youtube, Gamepad2 } from 'lucide-react';
 
 const NAV_LINKS = [
-  { label: 'Explore', to: '/cafes' },
+  { label: 'Explore', to: '/explore' },
   { label: 'Blog', to: '/blog' },
 ];
 
@@ -23,7 +23,7 @@ export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    navigate(`/cafes${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''}`);
+    navigate(`/explore${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''}`);
   }
 
   return (
@@ -70,7 +70,7 @@ export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
             {/* Desktop nav links */}
             <nav className="ml-auto hidden items-center gap-1 md:flex">
               {NAV_LINKS.map((l) => <Link key={l.label} href={l.to} className="rounded-lg px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</Link>)}
-              <Link href="/cafes" className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90">Find a Cafe</Link>
+              <Link href="/explore" className="ml-2 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90">Find a Cafe</Link>
               <div className="ml-2 flex items-center gap-1 border-l border-border/50 pl-2">
                 {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
                   <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground">
@@ -128,7 +128,7 @@ export function Navbar({ cafePage = false }: { cafePage?: boolean }) {
             </li>
           </ul>
           <Link
-            href="/cafes"
+            href="/explore"
             className="mt-2 flex w-full items-center justify-center rounded-full bg-foreground py-3 text-sm font-semibold text-background"
           >
             Find a Cafe

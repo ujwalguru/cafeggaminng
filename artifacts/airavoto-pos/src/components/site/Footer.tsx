@@ -3,11 +3,11 @@ import { MapPin } from 'lucide-react';
 import { MobileBottomNav } from '@/components/site/MobileBottomNav';
 
 const DISCOVER = [
-  { label: 'Browse all cafes', to: '/cafes' },
-  { label: 'By city', to: '/cafes' },
-  { label: 'VR zones', to: '/cafes?cat=VR' },
-  { label: 'PS5 cafes', to: '/cafes?cat=Console' },
-  { label: 'Racing simulators', to: '/cafes' },
+  { label: 'Browse all cafes', to: '/explore' },
+  { label: 'By city', to: '/explore' },
+  { label: 'VR zones', to: '/explore?cat=VR' },
+  { label: 'PS5 cafes', to: '/explore?cat=Console' },
+  { label: 'Racing simulators', to: '/explore' },
 ];
 
 const CITIES = ['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur'];
