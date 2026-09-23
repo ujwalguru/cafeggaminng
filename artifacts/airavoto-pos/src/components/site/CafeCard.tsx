@@ -2,6 +2,7 @@ import { Link } from 'wouter';
 import { MapPin, Star, Monitor, Gamepad2, Headphones, Smartphone } from 'lucide-react';
 import type { Cafe, GameCategory } from '@/lib/cafes';
 import { DEFAULT_CAFE_IMAGE, getLiveDevice, type LiveCafeSnapshot } from '@/lib/live-cafes';
+import { LiveViewerBadge } from '@/components/site/LiveViewerBadge';
 
 const CATEGORY_ICON: Record<GameCategory, React.ElementType> = {
   PC: Monitor,
@@ -61,6 +62,10 @@ export function CafeCard({ cafe, live }: { cafe: Cafe; live?: LiveCafeSnapshot }
               Featured
             </span>
           )}
+
+          <span className="absolute right-3 top-3">
+            <LiveViewerBadge slug={cafe.slug} compact />
+          </span>
 
           {/* Category device icons */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5">

@@ -14,6 +14,7 @@ import { useDocumentMeta } from '@/hooks/use-document-meta';
 import NotFound from '@/pages/not-found';
 import { DEFAULT_CAFE_IMAGE, fetchLiveCafe, getLiveDevice, liveCafeChangeSignature, liveSnapshotToCafe, type LiveCafeSnapshot } from '@/lib/live-cafes';
 import { LiveRefreshPrompt } from '@/components/site/LiveRefreshPrompt';
+import { LiveViewerBadge } from '@/components/site/LiveViewerBadge';
 
 // ── Station helpers ────────────────────────────────────────────────────────────
 type StationType = string;
@@ -621,6 +622,7 @@ export default function CafeDetail() {
             </div>
 
             <div className="flex shrink-0 flex-col items-end gap-1 text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] sm:gap-2">
+              <LiveViewerBadge slug={cafe.slug} join />
               <span className={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm ${
                 cafe.isOpen
                   ? 'bg-[oklch(0.20_0.06_150/0.8)] text-[oklch(0.78_0.18_150)]'
