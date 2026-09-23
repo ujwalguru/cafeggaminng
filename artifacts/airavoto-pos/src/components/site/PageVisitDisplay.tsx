@@ -21,10 +21,10 @@ export function PageVisitDisplay() {
   const digits = useMemo(() => formatDigits(visits ?? 0).split(''), [visits]);
 
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-4 py-4 shadow-[0_12px_34px_rgba(0,0,0,0.25)] backdrop-blur-sm" aria-label={`${visits ?? 0} total page visits`}>
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-4 py-4 shadow-[0_12px_34px_rgba(0,0,0,0.25)] backdrop-blur-sm" aria-label={`${visits ?? 0} unique visitors`}>
       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/55">
         <span className="size-1.5 rounded-full bg-pink-400 shadow-[0_0_10px_rgba(244,114,182,0.9)]" />
-        Total page visits
+        Unique visitors
       </div>
       <div className="flex gap-1" aria-hidden="true">
         {digits.map((digit, index) => (
