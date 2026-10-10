@@ -360,14 +360,32 @@ export default function CafeDetail() {
   const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [], bookingsUpcoming: seat.bookingsUpcoming ?? [] });
   const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)).slice(0, pcTotal) : buildStations('PC', pcTotal, pcAvail, seed);
   const ps5Stations = livePs5?.seats.length ? dedupeStations(livePs5.seats.map(mapLiveSeat)).slice(0, ps5Total) : buildStations('PS5', ps5Total, ps5Avail, seed + 50);
+  const configuredSeatCount = (type: string) => {
+    const config = (liveSnapshot?.configurations?.devices ?? []).find((device) => {
+      const label = String(device.type ?? device.category ?? device.name ?? '').toUpperCase();
+      return /PC|PS5|PLAYSTATION|VR|XBOX|CONSOLE/.test(label) && label.includes(type.toUpperCase());
+    });
+    const count = Number(config?.count ?? config?.total ?? config?.seatCount ?? 0);
+    return Number.isFinite(count) && count > 0 ? Math.round(count) : 1;
+  };
+  const buildOfflinePopupStations = (type: string): Station[] => Array.from({ length: configuredSeatCount(type) }, (_, index) => ({
+    id: index + 1,
+    label: `${type} ${index + 1}`,
+    available: false,
+    status: 'offline',
+    occupiedUntil: null,
+  }));
   const selectedDevice = stationModal ? liveSnapshot?.devices.find((device) => device.type === stationModal) : null;
-  const modalStations = stationModal === 'PC'
+  const liveModalStations = stationModal === 'PC'
     ? pcStations
     : stationModal === 'PS5'
       ? ps5Stations
       : (selectedDevice?.seats ?? []).map(mapLiveSeat);
+  const modalStations = liveModalStations.length > 0 ? liveModalStations : (isCafeOffline && stationModal ? buildOfflinePopupStations(stationModal) : liveModalStations);
   const modalAvail = stationModal === 'PC' ? pcAvail : stationModal === 'PS5' ? ps5Avail : (selectedDevice?.available ?? 0);
   const modalTotal = stationModal === 'PC' ? pcTotal : stationModal === 'PS5' ? ps5Total : (selectedDevice?.total ?? 0);
+  const modalDisplayAvail = isCafeOffline ? 0 : modalAvail;
+  const modalDisplayTotal = isCafeOffline ? modalStations.length : modalTotal;
   const futureBookingsFor = (station: Station) => (station.bookingsUpcoming?.length ? station.bookingsUpcoming : station.bookingsToday ?? []).filter((booking) => {
     const start = booking.startTime ? new Date(booking.startTime).getTime() : NaN;
     if (!Number.isFinite(start) || start <= Date.now()) return false;
@@ -1021,7 +1039,7 @@ export default function CafeDetail() {
                 </span>
                 <div>
                   <h3 className="font-bold">{stationModal} Stations</h3>
-                  <p className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{modalAvail} available</span> · {modalTotal} total stations</p>
+                  <p className="text-xs text-muted-foreground">{isCafeOffline ? <><span className="font-semibold text-white">Live status unavailable</span> · {modalDisplayTotal} seat{modalDisplayTotal === 1 ? '' : 's'} listed</> : <><span className="font-semibold text-foreground">{modalDisplayAvail} available</span> · {modalDisplayTotal} total stations</>}</p>
                 </div>
               </div>
               <button onClick={() => setStationModal(null)} className="flex size-8 items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground">
@@ -1036,7 +1054,7 @@ export default function CafeDetail() {
 
             <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl border border-border/60 bg-black/20 p-1">
               {([
-                ['seats', `Seats · ${modalAvailableStations.length} available · ${modalRunningStations.length} running`],
+                ['seats', isCafeOffline ? `Seats · ${modalStations.length} status unavailable` : `Seats · ${modalAvailableStations.length} available · ${modalRunningStations.length} running`],
               ] as const).map(([value, label]) => (
                 <button key={value} type="button" onClick={() => setStationTab(value)} className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${stationTab === value ? 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'}`}>
                   {label}
@@ -1094,7 +1112,9 @@ export default function CafeDetail() {
                   <div
                     key={s.id}
                     className={`rounded-xl border p-3 text-center ${
-                      isOccupiedNow
+                      isCafeOffline
+                        ? 'border-white/20 bg-white/[0.06]'
+                        : isOccupiedNow
                         ? 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                         : showBookedDetails
                         ? 'border-[oklch(0.78_0.16_85/0.65)] bg-[oklch(0.22_0.12_85/0.28)]'
@@ -1103,12 +1123,14 @@ export default function CafeDetail() {
                           : 'border-[oklch(0.55_0.16_25/0.45)] bg-[oklch(0.18_0.04_25/0.22)]'
                     }`}
                   >
-                    <p className={`text-sm font-bold ${isOccupiedNow && !showBookedDetails ? 'text-[oklch(0.78_0.14_25)]' : showBookedDetails ? 'text-[oklch(0.90_0.18_85)]' : 'text-[oklch(0.80_0.16_150)]'}`}>{s.label}</p>
+                    <p className={`text-sm font-bold ${isCafeOffline ? 'text-white' : isOccupiedNow && !showBookedDetails ? 'text-[oklch(0.78_0.14_25)]' : showBookedDetails ? 'text-[oklch(0.90_0.18_85)]' : 'text-[oklch(0.80_0.16_150)]'}`}>{s.label}</p>
                     {showBookedDetails && upcomingBookings.length > 0 ? (
                       <button type="button" className="mt-1 w-full space-y-0.5 text-[10px] font-semibold leading-tight text-[oklch(0.90_0.18_85)] underline-offset-2 hover:underline" onClick={() => setBookingDetail({ station: s.label, bookings: upcomingBookings })}>
                         <span className="block">{upcomingBookings.length} booking{upcomingBookings.length === 1 ? '' : 's'} · {formatBookingDate(upcomingBookings[0].startTime)}</span>
                         {upcomingBookings.map((booking, index) => <span className="block" key={`${booking.startTime}-${booking.endTime}-${index}`}>{formatBookingDate(booking.startTime)} · {formatBookingRange(booking.startTime, booking.endTime)}</span>)}
                       </button>
+                    ) : isCafeOffline ? (
+                      <p className="mt-1 text-[10px] font-medium leading-tight text-white/65">Live status unavailable</p>
                     ) : !showBookedDetails && isOccupiedNow ? (
                       <p className="mt-1 text-[10px] font-medium leading-tight text-[oklch(0.78_0.14_25)]">{formatOccupiedUntil(s.occupiedUntil)}</p>
                     ) : !showBookedDetails ? (
