@@ -338,6 +338,14 @@ export default function CafeDetail() {
   const hasPs5GameTag = cafe?.gameTags?.some((game) => /ps5|playstation|console/i.test(game.platform)) ?? false;
   const hasConsole = (cafe?.categories.includes('Console') ?? false) || Boolean(livePs5) || hasPs5Pricing || hasConsoleAmenity || hasPs5GameTag;
   const otherLiveDevices = liveSnapshot?.devices.filter((device) => device.type !== 'PC' && device.type !== 'PS5' && Number(device.total) > 0) ?? [];
+  const configuredOtherTypes = [
+    ...(liveSnapshot?.configurations?.devices ?? []).map((device) => String(device.type ?? device.category ?? device.name ?? '').trim()),
+    ...(cafe?.categories ?? []).filter((category) => category !== 'PC' && category !== 'Console'),
+  ].filter((type) => type && !/pc|computer|ps5|playstation|console/i.test(type));
+  const offlineOtherDevices = isCafeOffline
+    ? Array.from(new Set(configuredOtherTypes.map((type) => type.toUpperCase()))).map((type) => ({ type, category: type, total: 0, available: 0, inUse: 0, seats: [] }))
+    : [];
+  const otherDevices = [...otherLiveDevices, ...offlineOtherDevices.filter((offlineDevice) => !otherLiveDevices.some((device) => device.type.toUpperCase() === offlineDevice.type))];
   // Once a live snapshot exists, its device rows are authoritative. Do not
   // rebuild a deleted category from aggregate cafe totals when the POS sends
   // no row (or sends an explicit total of 0).
@@ -549,24 +557,24 @@ export default function CafeDetail() {
           <p className={`mt-2 text-[10px] ${isCafeOffline ? 'text-red-200/80' : 'text-muted-foreground group-hover:text-foreground'}`}>{isCafeOffline ? 'Live availability is offline · Tap to book' : 'Tap to see stations →'}</p>
         </button>
       )}
-      {otherLiveDevices.map((device) => (
-        <button key={device.type} onClick={() => setStationModal(device.type)} className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]">
+      {otherDevices.map((device) => (
+        <button key={device.type} onClick={() => setStationModal(device.type)} className={`group rounded-2xl border p-4 text-left transition-all ${isCafeOffline ? 'border-red-400/60 bg-red-950/35 hover:border-red-300/80 hover:bg-red-950/55' : 'border-border/60 bg-card hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]'}`}>
           <div className="mb-3 flex items-center justify-between">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+            <span className={`flex size-8 items-center justify-center rounded-lg ${isCafeOffline ? 'bg-red-500/20 text-red-300' : 'bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]'}`}>
               <Headphones className="size-4" />
             </span>
-            <span className={`text-[10px] font-semibold uppercase tracking-wide ${device.available > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
-              {device.available > 0 ? 'Available' : 'Full'}
+            <span className={`text-[10px] font-semibold uppercase tracking-wide ${isCafeOffline ? 'text-red-300' : device.available > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+              {isCafeOffline ? 'Offline' : device.available > 0 ? 'Available' : 'Full'}
             </span>
           </div>
           <p className="text-xs font-semibold text-muted-foreground">{device.type}</p>
-          <p className="mt-0.5 text-2xl font-extrabold text-foreground">
-            {device.available}<span className="text-sm font-normal text-muted-foreground">/{device.total}</span>
+          <p className={`mt-0.5 text-2xl font-extrabold ${isCafeOffline ? 'text-red-200' : 'text-foreground'}`}>
+            {isCafeOffline ? 'Offline' : <>{device.available}<span className="text-sm font-normal text-muted-foreground">/{device.total}</span></>}
           </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+          {!isCafeOffline && <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
             <div className="h-full rounded-full transition-all" style={{ width: device.total > 0 ? `${(device.available / device.total) * 100}%` : '0%', background: device.available > 0 ? 'oklch(0.72 0.18 150)' : 'oklch(0.60 0.18 25)' }} />
-          </div>
-          <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+          </div>}
+          <p className={`mt-2 text-[10px] ${isCafeOffline ? 'text-red-200/80' : 'text-muted-foreground group-hover:text-foreground'}`}>{isCafeOffline ? 'Live availability is offline · Tap to book' : 'Tap to see stations →'}</p>
         </button>
       ))}
       </div>
