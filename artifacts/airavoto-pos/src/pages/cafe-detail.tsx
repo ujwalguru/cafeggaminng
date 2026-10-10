@@ -329,10 +329,14 @@ export default function CafeDetail() {
   const displayFoodItems = cafe?.foodItems?.length
     ? cafe.foodItems
     : ((liveSnapshot?.metadata?.foodItems ?? liveSnapshot?.metadata?.food_items ?? []) as Array<{ name?: string; title?: string; itemName?: string; price?: number | string; category?: string }>);
-  const hasConsole = cafe?.categories.includes('Console') ?? false;
   const isCafeOffline = Boolean(liveSnapshot && (liveSnapshot.status !== 'online' || liveSnapshot.is_stale));
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
+  const configuredPricing = liveSnapshot?.configurations?.pricing ?? [];
+  const hasPs5Pricing = configuredPricing.some((item) => /ps5|playstation|console/i.test(String(item.category ?? item.name ?? item.type ?? '')) && Number(item.price ?? 0) > 0);
+  const hasConsoleAmenity = cafe?.amenities.some((amenity) => /ps5|playstation|console/i.test(amenity)) ?? false;
+  const hasPs5GameTag = cafe?.gameTags?.some((game) => /ps5|playstation|console/i.test(game.platform)) ?? false;
+  const hasConsole = (cafe?.categories.includes('Console') ?? false) || Boolean(livePs5) || hasPs5Pricing || hasConsoleAmenity || hasPs5GameTag;
   const otherLiveDevices = liveSnapshot?.devices.filter((device) => device.type !== 'PC' && device.type !== 'PS5' && Number(device.total) > 0) ?? [];
   // Once a live snapshot exists, its device rows are authoritative. Do not
   // rebuild a deleted category from aggregate cafe totals when the POS sends
