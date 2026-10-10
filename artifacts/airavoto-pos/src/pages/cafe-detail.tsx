@@ -330,6 +330,7 @@ export default function CafeDetail() {
     ? cafe.foodItems
     : ((liveSnapshot?.metadata?.foodItems ?? liveSnapshot?.metadata?.food_items ?? []) as Array<{ name?: string; title?: string; itemName?: string; price?: number | string; category?: string }>);
   const hasConsole = cafe?.categories.includes('Console') ?? false;
+  const isCafeOffline = Boolean(liveSnapshot && (liveSnapshot.status !== 'online' || liveSnapshot.is_stale));
   const livePc = getLiveDevice(liveSnapshot, 'PC');
   const livePs5 = getLiveDevice(liveSnapshot, 'PS5');
   const otherLiveDevices = liveSnapshot?.devices.filter((device) => device.type !== 'PC' && device.type !== 'PS5' && Number(device.total) > 0) ?? [];
@@ -341,8 +342,8 @@ export default function CafeDetail() {
   const ps5Total   = hasLiveSnapshot ? (livePs5?.total ?? 0) : (hasConsole ? (cafe?.totalSeats ?? 0) - pcTotal : 0);
   const pcAvail    = hasLiveSnapshot ? (livePc?.available ?? 0) : (hasConsole ? Math.round((cafe?.availableSeats ?? 0) * 0.65) : (cafe?.availableSeats ?? 0));
   const ps5Avail   = hasLiveSnapshot ? (livePs5?.available ?? 0) : (hasConsole ? Math.max(0, (cafe?.availableSeats ?? 0) - pcAvail) : 0);
-  const showPcAvailability = pcTotal > 0;
-  const showPs5Availability = hasConsole && ps5Total > 0;
+  const showPcAvailability = pcTotal > 0 || (isCafeOffline && (cafe?.categories.includes('PC') ?? false));
+  const showPs5Availability = hasConsole && (ps5Total > 0 || isCafeOffline);
   const seed       = parseInt(cafe?.id ?? '1', 10) || 1;
   const mapLiveSeat = (seat: any, index: number) => ({ id: index + 1, label: seat.label, available: seat.available, status: seat.status, startTime: seat.startTime ?? null, occupiedUntil: seat.occupiedUntil ?? null, bookingsToday: seat.bookingsToday ?? [], bookingsUpcoming: seat.bookingsUpcoming ?? [] });
   const pcStations  = livePc?.seats.length ? dedupeStations(livePc.seats.map(mapLiveSeat)).slice(0, pcTotal) : buildStations('PC', pcTotal, pcAvail, seed);
@@ -501,47 +502,47 @@ export default function CafeDetail() {
       <div className={`grid gap-3 ${[showPcAvailability, showPs5Availability, otherLiveDevices.length > 0].filter(Boolean).length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
       {showPcAvailability && <button
         onClick={() => setStationModal('PC')}
-        className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
+        className={`group rounded-2xl border p-4 text-left transition-all ${isCafeOffline ? 'border-red-400/60 bg-red-950/35 hover:border-red-300/80 hover:bg-red-950/55' : 'border-border/60 bg-card hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]'}`}
       >
         <div className="mb-3 flex items-center justify-between">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+          <span className={`flex size-8 items-center justify-center rounded-lg ${isCafeOffline ? 'bg-red-500/20 text-red-300' : 'bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]'}`}>
             <Monitor className="size-4" />
           </span>
-          <span className={`text-[10px] font-semibold uppercase tracking-wide ${pcAvail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
-            {pcAvail > 0 ? 'Available' : 'Full'}
+          <span className={`text-[10px] font-semibold uppercase tracking-wide ${isCafeOffline ? 'text-red-300' : pcAvail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+            {isCafeOffline ? 'Offline' : pcAvail > 0 ? 'Available' : 'Full'}
           </span>
         </div>
         <p className="text-xs font-semibold text-muted-foreground">PC</p>
-        <p className="mt-0.5 text-2xl font-extrabold text-foreground">
-          {pcAvail}<span className="text-sm font-normal text-muted-foreground">/{pcTotal}</span>
+        <p className={`mt-0.5 text-2xl font-extrabold ${isCafeOffline ? 'text-red-200' : 'text-foreground'}`}>
+          {isCafeOffline ? 'Offline' : <>{pcAvail}<span className="text-sm font-normal text-muted-foreground">/{pcTotal}</span></>}
         </p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+        {!isCafeOffline && <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
           <div className="h-full rounded-full transition-all" style={{ width: `${(pcAvail / pcTotal) * 100}%`, background: pcAvail > 3 ? 'oklch(0.72 0.18 150)' : pcAvail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
-        </div>
-        <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+        </div>}
+        <p className={`mt-2 text-[10px] ${isCafeOffline ? 'text-red-200/80' : 'text-muted-foreground group-hover:text-foreground'}`}>{isCafeOffline ? 'Live availability is offline · Tap to book' : 'Tap to see stations →'}</p>
       </button>}
 
       {showPs5Availability && (
         <button
           onClick={() => setStationModal('PS5')}
-          className="group rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]"
+          className={`group rounded-2xl border p-4 text-left transition-all ${isCafeOffline ? 'border-red-400/60 bg-red-950/35 hover:border-red-300/80 hover:bg-red-950/55' : 'border-border/60 bg-card hover:border-[oklch(0.55_0.18_265/0.6)] hover:bg-[oklch(0.18_0.04_265/0.4)]'}`}
         >
           <div className="mb-3 flex items-center justify-between">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]">
+            <span className={`flex size-8 items-center justify-center rounded-lg ${isCafeOffline ? 'bg-red-500/20 text-red-300' : 'bg-[oklch(0.22_0.06_265/0.5)] text-[oklch(0.75_0.14_265)]'}`}>
               <Gamepad2 className="size-4" />
             </span>
-            <span className={`text-[10px] font-semibold uppercase tracking-wide ${ps5Avail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
-              {ps5Avail > 0 ? 'Available' : 'Full'}
+            <span className={`text-[10px] font-semibold uppercase tracking-wide ${isCafeOffline ? 'text-red-300' : ps5Avail > 0 ? 'text-[oklch(0.72_0.18_150)]' : 'text-[oklch(0.60_0.14_25)]'}`}>
+              {isCafeOffline ? 'Offline' : ps5Avail > 0 ? 'Available' : 'Full'}
             </span>
           </div>
           <p className="text-xs font-semibold text-muted-foreground">PS5</p>
-          <p className="mt-0.5 text-2xl font-extrabold text-foreground">
-            {ps5Avail}<span className="text-sm font-normal text-muted-foreground">/{ps5Total}</span>
+          <p className={`mt-0.5 text-2xl font-extrabold ${isCafeOffline ? 'text-red-200' : 'text-foreground'}`}>
+            {isCafeOffline ? 'Offline' : <>{ps5Avail}<span className="text-sm font-normal text-muted-foreground">/{ps5Total}</span></>}
           </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+          {!isCafeOffline && <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
             <div className="h-full rounded-full transition-all" style={{ width: ps5Total > 0 ? `${(ps5Avail / ps5Total) * 100}%` : '0%', background: ps5Avail > 2 ? 'oklch(0.72 0.18 150)' : ps5Avail > 0 ? 'oklch(0.72 0.18 60)' : 'oklch(0.60 0.18 25)' }} />
-          </div>
-          <p className="mt-2 text-[10px] text-muted-foreground group-hover:text-foreground">Tap to see stations →</p>
+          </div>}
+          <p className={`mt-2 text-[10px] ${isCafeOffline ? 'text-red-200/80' : 'text-muted-foreground group-hover:text-foreground'}`}>{isCafeOffline ? 'Live availability is offline · Tap to book' : 'Tap to see stations →'}</p>
         </button>
       )}
       {otherLiveDevices.map((device) => (
@@ -604,7 +605,7 @@ export default function CafeDetail() {
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
-        <img src={cafe.gallery?.[0] || cafe.image || DEFAULT_CAFE_IMAGE} alt={cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
+        <img src={isCafeOffline ? '/offline-cafe.png' : (cafe.gallery?.[0] || cafe.image || DEFAULT_CAFE_IMAGE)} alt={isCafeOffline ? `${cafe.name} currently offline` : cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         {/* Back button — stays at the top on both mobile and desktop */}
         <Link
@@ -653,19 +654,19 @@ export default function CafeDetail() {
           </div>
         </div>
 
-        {/* Booking marquee — across the bottom edge of the hero */}
-        <div className="absolute inset-x-0 bottom-0 z-20 overflow-hidden border-y border-white/15 bg-black/75 py-2.5 text-primary shadow-[0_-10px_28px_rgba(0,0,0,0.75)] backdrop-blur-sm" role="note">
-          <div className="booking-marquee-track flex items-center whitespace-nowrap text-xs font-extrabold uppercase tracking-wide sm:text-sm">
-            {[0, 1].map((copy) => (
-              <div key={copy} aria-hidden={copy === 1} className="booking-marquee-segment flex shrink-0 items-center gap-10 px-4">
-                <span className="flex items-center gap-2"><Phone className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-                <span aria-hidden="true">•</span>
-                <span className="flex items-center gap-2"><MessageCircle className="size-4" /> To book a seat, please contact the gaming café owner by phone or WhatsApp.</span>
-                <span aria-hidden="true">•</span>
-              </div>
-            ))}
+        {/* Offline notice — shown only while the live café connection is offline */}
+        {isCafeOffline && (
+          <div className="absolute inset-x-0 bottom-0 z-20 overflow-hidden border-y border-red-400/30 bg-red-950/85 py-2.5 text-red-100 shadow-[0_-10px_28px_rgba(0,0,0,0.75)] backdrop-blur-sm" role="note" aria-live="polite">
+            <div className="booking-marquee-track flex items-center whitespace-nowrap text-xs font-extrabold tracking-wide sm:text-sm">
+              {[0, 1].map((copy) => (
+                <div key={copy} aria-hidden={copy === 1} className="booking-marquee-segment flex shrink-0 items-center gap-10 px-4">
+                  <span className="flex items-center gap-2"><span aria-hidden="true">ⓘ</span> This does not mean that the café is closed. The café may still be running, but its live availability is currently offline. You can still book your seat!</span>
+                  <span aria-hidden="true">•</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="mx-auto max-w-5xl px-3 sm:px-5">
