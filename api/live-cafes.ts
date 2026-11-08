@@ -110,6 +110,22 @@ function minimizeListing(listing: any) {
             .map((item: unknown) => safeString(item, 120))
             .filter(Boolean)
         : [],
+      membershipPlans: Array.isArray(cafe.membershipPlans)
+        ? cafe.membershipPlans
+            .slice(0, 25)
+            .map((plan: any) => ({
+              id: safeString(plan?.id, 120),
+              name: safeString(plan?.name, 120),
+              category: safeString(plan?.category, 80) || "ALL",
+              membershipPrice: safeNumber(plan?.membershipPrice),
+              regularPrice: plan?.regularPrice == null ? null : safeNumber(plan.regularPrice),
+              duration: safeString(plan?.duration, 80),
+              validity: safeString(plan?.validity, 80),
+              benefits: safeString(plan?.benefits, 1000),
+              notice: safeString(plan?.notice, 1000),
+            }))
+            .filter((plan: any) => plan.name && plan.membershipPrice > 0 && plan.duration && plan.validity)
+        : [],
       foodItems: Array.isArray(cafe.foodItems ?? cafe.food_items)
         ? (cafe.foodItems ?? cafe.food_items).slice(0, 100)
         : [],

@@ -22,6 +22,18 @@ export interface CafePlan {
   priceVisible?: boolean;
 }
 
+export interface CafeMembershipPlan {
+  id?: string;
+  name: string;
+  category: string;
+  membershipPrice: number;
+  regularPrice?: number | null;
+  duration: string;
+  validity: string;
+  benefits: string;
+  notice: string;
+}
+
 export interface CafeHappyHour {
   category: string;
   startTime: string;
@@ -74,6 +86,7 @@ export interface Cafe {
   phone: string;
   maps: string;
   plans: CafePlan[];
+  membershipPlans?: CafeMembershipPlan[];
   reviews: CafeReview[];
   games: string[];
   gameTags?: Array<{ name: string; platform: string }>;

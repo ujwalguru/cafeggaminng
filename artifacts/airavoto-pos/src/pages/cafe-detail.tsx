@@ -4,7 +4,7 @@ import { Link } from 'wouter';
 import {
   MapPin, Star, Users, Clock, Phone, ArrowLeft, CheckCircle2, Wifi,
   Wind, UtensilsCrossed, Headphones, Zap, Trophy, Shield, Monitor,
-  ChevronRight, ExternalLink, MessageCircle, Gamepad2, X, Crown
+  ChevronLeft, ChevronRight, ExternalLink, MessageCircle, Gamepad2, X, Crown
 } from 'lucide-react';
 import { CafeCard } from '@/components/site/CafeCard';
 import type { Cafe } from '@/lib/cafes';
@@ -280,6 +280,7 @@ export default function CafeDetail() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [gameTab, setGameTab] = useState('PC');
+  const [membershipPlanIndex, setMembershipPlanIndex] = useState(0);
   const [membershipBenefitsOpen, setMembershipBenefitsOpen] = useState(false);
   const [stationTab, setStationTab] = useState<'seats' | 'suggestion'>('seats');
   const [suggestionDate, setSuggestionDate] = useState(() => localDateKey(new Date()));
@@ -327,6 +328,8 @@ export default function CafeDetail() {
   }, [slug]);
 
   const cafe = liveSnapshot ? liveSnapshotToCafe(liveSnapshot) : undefined;
+  const membershipPlans = cafe?.membershipPlans ?? [];
+  const membershipPlan = membershipPlans.length ? membershipPlans[membershipPlanIndex % membershipPlans.length] : undefined;
   const displayFoodItems = cafe?.foodItems?.length
     ? cafe.foodItems
     : ((liveSnapshot?.metadata?.foodItems ?? liveSnapshot?.metadata?.food_items ?? []) as Array<{ name?: string; title?: string; itemName?: string; price?: number | string; category?: string }>);
@@ -836,44 +839,55 @@ export default function CafeDetail() {
               </div>
             </section>
 
-            {/* Featured membership pass */}
-            <section aria-labelledby="membership-heading" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Crown aria-hidden="true" className="size-7 fill-fuchsia-600 text-fuchsia-600" />
-                <h2 id="membership-heading" className="text-base font-bold sm:text-lg">Membership</h2>
-                <span className="h-px flex-1 bg-gradient-to-r from-fuchsia-600 via-violet-500 to-transparent" />
-              </div>
-              <div className="relative isolate overflow-hidden rounded-[1.65rem] border border-fuchsia-400/70 bg-gradient-to-br from-fuchsia-600 via-violet-500 to-cyan-400 p-[2px] shadow-[0_0_28px_rgba(192,38,211,0.22)]">
-                <div className="relative grid min-h-[164px] grid-cols-[1.35fr_0.85fr] overflow-hidden rounded-[1.55rem] bg-gradient-to-br from-[#fa36df] via-[#4eddfa] to-[#922aff] text-black sm:min-h-[190px]">
-                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70" style={{ background: 'radial-gradient(ellipse at 12% 100%, #00eaff 0%, transparent 38%), radial-gradient(ellipse at 82% 4%, #f500dc 0%, transparent 38%)' }} />
-                  <div className="relative flex min-w-0 flex-col justify-center px-4 py-5 sm:px-8 sm:py-6">
-                    <div className="mb-1 flex items-center gap-2 text-[10px] font-black italic tracking-[0.16em] sm:text-xs">GAMING CAFE <span className="h-[2px] flex-1 bg-black/80" /></div>
-                    <div className="text-[clamp(1.45rem,5.6vw,3.1rem)] font-black italic leading-[0.92] tracking-[-0.06em]">MEMBERSHIP</div>
-                    <div className="mb-3 flex items-center gap-3 text-sm font-black italic tracking-[0.46em] sm:text-lg"><span className="h-[2px] flex-1 bg-black/80" />PLAN<span className="h-[2px] flex-1 bg-black/80" /></div>
-                    <div className="mb-2 inline-flex w-fit -skew-x-6 rounded-md bg-black px-4 py-1 text-xs font-black italic tracking-wider text-white sm:px-6 sm:text-base">BASIC PASS</div>
-                    <div className="mb-2 text-[clamp(1.8rem,7vw,3.7rem)] font-black italic leading-none tracking-[-0.04em]">10 HOURS</div>
-                    <div className="inline-flex w-fit items-center gap-3 overflow-hidden rounded-full border border-white/60 bg-black/90 px-3 py-1.5 text-white shadow-md sm:px-5 sm:py-2">
-                      <span className="relative text-sm font-bold text-white/80 sm:text-lg"><span className="absolute left-0 right-0 top-1/2 h-[2px] -rotate-6 bg-red-500" />₹700</span>
-                      <span className="h-6 w-px bg-fuchsia-400" />
-                      <span className="text-2xl font-black italic text-fuchsia-400 sm:text-4xl">₹550</span>
+            {/* Membership offers from the café's Render profile */}
+            {membershipPlan && (
+              <section aria-labelledby="membership-heading" className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Crown aria-hidden="true" className="size-7 fill-fuchsia-600 text-fuchsia-600" />
+                  <h2 id="membership-heading" className="text-base font-bold sm:text-lg">Membership</h2>
+                  <span className="h-px flex-1 bg-gradient-to-r from-fuchsia-600 via-violet-500 to-transparent" />
+                </div>
+                <div className="relative isolate overflow-hidden rounded-[1.65rem] border border-fuchsia-400/70 bg-gradient-to-br from-fuchsia-600 via-violet-500 to-cyan-400 p-[2px] shadow-[0_0_28px_rgba(192,38,211,0.22)]">
+                  <div className="relative grid min-h-[164px] grid-cols-[1.35fr_0.85fr] overflow-hidden rounded-[1.55rem] bg-gradient-to-br from-[#fa36df] via-[#4eddfa] to-[#922aff] text-black sm:min-h-[190px]">
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70" style={{ background: 'radial-gradient(ellipse at 12% 100%, #00eaff 0%, transparent 38%), radial-gradient(ellipse at 82% 4%, #f500dc 0%, transparent 38%)' }} />
+                    <div className="relative flex min-w-0 flex-col justify-center px-4 py-5 sm:px-8 sm:py-6">
+                      <div className="mb-1 flex items-center gap-2 text-[10px] font-black italic tracking-[0.16em] sm:text-xs">GAMING CAFE <span className="h-[2px] flex-1 bg-black/80" /></div>
+                      <div className="text-[clamp(1.3rem,5.2vw,3.1rem)] font-black italic leading-[0.92] tracking-[-0.06em]">MEMBERSHIP</div>
+                      <div className="mb-3 flex items-center gap-3 text-sm font-black italic tracking-[0.46em] sm:text-lg"><span className="h-[2px] flex-1 bg-black/80" />PLAN<span className="h-[2px] flex-1 bg-black/80" /></div>
+                      <div className="mb-2 inline-flex max-w-full w-fit -skew-x-6 rounded-md bg-black px-4 py-1 text-xs font-black italic tracking-wider text-white sm:px-6 sm:text-base">{membershipPlan.name}</div>
+                      <div className="mb-2 text-[clamp(1.8rem,7vw,3.7rem)] font-black italic leading-none tracking-[-0.04em]">{membershipPlan.duration}</div>
+                      <div className="inline-flex w-fit items-center gap-3 overflow-hidden rounded-full border border-white/60 bg-black/90 px-3 py-1.5 text-white shadow-md sm:px-5 sm:py-2">
+                        {membershipPlan.regularPrice != null && membershipPlan.regularPrice > membershipPlan.membershipPrice && <span className="relative text-sm font-bold text-white/80 sm:text-lg"><span className="absolute left-0 right-0 top-1/2 h-[2px] -rotate-6 bg-red-500" />₹{membershipPlan.regularPrice.toLocaleString('en-IN')}</span>}
+                        {membershipPlan.regularPrice != null && membershipPlan.regularPrice > membershipPlan.membershipPrice && <span className="h-6 w-px bg-fuchsia-400" />}
+                        <span className="text-2xl font-black italic text-fuchsia-400 sm:text-4xl">₹{membershipPlan.membershipPrice.toLocaleString('en-IN')}</span>
+                      </div>
                     </div>
+                    <div className="relative flex flex-col items-center justify-center border-l-2 border-dashed border-black/70 px-3 text-center sm:px-6">
+                      <span className="mb-2 text-[10px] font-black italic tracking-wider sm:text-sm">TAP TO VIEW</span>
+                      <button type="button" aria-expanded={membershipBenefitsOpen} aria-controls={`membership-benefits-${membershipPlanIndex}`} onClick={() => setMembershipBenefitsOpen((open) => !open)} className="text-[clamp(1.25rem,5vw,2.5rem)] font-black italic leading-none text-fuchsia-950 underline decoration-black/70 decoration-2 underline-offset-4 transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">BENEFITS</button>
+                      <span aria-hidden="true" className="mt-3 h-[3px] w-full max-w-40 bg-black" />
+                    </div>
+                    <span aria-hidden="true" className="absolute -left-3 top-1/2 size-6 -translate-y-1/2 rounded-full border border-black/20 bg-background" />
+                    <span aria-hidden="true" className="absolute -right-3 top-1/2 size-6 -translate-y-1/2 rounded-full border border-black/20 bg-background" />
                   </div>
-                  <div className="relative flex flex-col items-center justify-center border-l-2 border-dashed border-black/70 px-3 text-center sm:px-6">
-                    <span className="mb-2 text-[10px] font-black italic tracking-wider sm:text-sm">TAP TO VIEW</span>
-                    <button type="button" aria-expanded={membershipBenefitsOpen} aria-controls="membership-benefits" onClick={() => setMembershipBenefitsOpen((open) => !open)} className="text-[clamp(1.25rem,5vw,2.5rem)] font-black italic leading-none text-fuchsia-950 underline decoration-black/70 decoration-2 underline-offset-4 transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">BENEFITS</button>
-                    <span aria-hidden="true" className="mt-3 h-[3px] w-full max-w-40 bg-black" />
+                </div>
+                {membershipBenefitsOpen && (
+                  <div id={`membership-benefits-${membershipPlanIndex}`} className="rounded-2xl border border-fuchsia-500/30 bg-fuchsia-950/20 px-4 py-3 text-sm text-foreground">
+                    <p className="font-semibold">{membershipPlan.name} · {membershipPlan.category}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{membershipPlan.benefits || 'No additional benefits listed.'}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Validity: {membershipPlan.validity}</p>
+                    {membershipPlan.notice && <p className="mt-2 text-xs text-muted-foreground">{membershipPlan.notice}</p>}
                   </div>
-                  <span aria-hidden="true" className="absolute -left-3 top-1/2 size-6 -translate-y-1/2 rounded-full border border-black/20 bg-background" />
-                  <span aria-hidden="true" className="absolute -right-3 top-1/2 size-6 -translate-y-1/2 rounded-full border border-black/20 bg-background" />
-                </div>
-              </div>
-              {membershipBenefitsOpen && (
-                <div id="membership-benefits" className="rounded-2xl border border-fuchsia-500/30 bg-fuchsia-950/20 px-4 py-3 text-sm text-foreground">
-                  <p className="font-semibold">Basic Pass · 10 gaming hours</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Offer shown: ₹550 (regular price ₹700). Please contact the café to confirm validity, booking, and redemption terms.</p>
-                </div>
-              )}
-            </section>
+                )}
+                {membershipPlans.length > 1 && (
+                  <div className="flex items-center justify-center gap-3" aria-label="Membership plan carousel controls">
+                    <button type="button" aria-label="Previous membership plan" onClick={() => { setMembershipPlanIndex((index) => (index - 1 + membershipPlans.length) % membershipPlans.length); setMembershipBenefitsOpen(false); }} className="flex size-9 items-center justify-center rounded-full border border-fuchsia-500/40 bg-background text-foreground hover:bg-fuchsia-950/30"><ChevronLeft className="size-4" /></button>
+                    <span className="text-xs text-muted-foreground" aria-live="polite">{membershipPlanIndex % membershipPlans.length + 1} / {membershipPlans.length}</span>
+                    <button type="button" aria-label="Next membership plan" onClick={() => { setMembershipPlanIndex((index) => (index + 1) % membershipPlans.length); setMembershipBenefitsOpen(false); }} className="flex size-9 items-center justify-center rounded-full border border-fuchsia-500/40 bg-background text-foreground hover:bg-fuchsia-950/30"><ChevronRight className="size-4" /></button>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Happy-hour pricing */}
             {hasHappyHourData && (

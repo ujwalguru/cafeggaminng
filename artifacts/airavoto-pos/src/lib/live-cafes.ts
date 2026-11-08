@@ -2,6 +2,7 @@ import type {
   Cafe,
   CafeHappyHour,
   CafeHappyHourPricing,
+  CafeMembershipPlan,
   GameCategory,
 } from "@/lib/cafes";
 
@@ -582,6 +583,19 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
       price: Number(item.price),
       priceVisible: item.websiteVisible !== false,
     })),
+    membershipPlans: (Array.isArray(metadata.membershipPlans) ? metadata.membershipPlans : [])
+      .filter((plan: any) => plan && typeof plan === "object" && Number.isFinite(Number(plan.membershipPrice)) && Number(plan.membershipPrice) > 0)
+      .map((plan: any): CafeMembershipPlan => ({
+        id: plan.id == null ? undefined : String(plan.id),
+        name: String(plan.name ?? "Membership pass"),
+        category: String(plan.category ?? "ALL"),
+        membershipPrice: Number(plan.membershipPrice),
+        regularPrice: plan.regularPrice == null ? null : Number(plan.regularPrice),
+        duration: String(plan.duration ?? ""),
+        validity: String(plan.validity ?? ""),
+        benefits: String(plan.benefits ?? ""),
+        notice: String(plan.notice ?? ""),
+      })),
     reviews: [],
     games: displayStrings(metadata.games),
     gameTags: normalizeGameTags(metadata.games),
