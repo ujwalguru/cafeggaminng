@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, ExternalLink, MessageCircle, Gamepad2, X, Crown
 } from 'lucide-react';
 import { CafeCard } from '@/components/site/CafeCard';
-import type { Cafe } from '@/lib/cafes';
+import type { Cafe, CafeMembershipPlan } from '@/lib/cafes';
 import { Navbar } from '@/components/site/Navbar';
 import { Footer } from '@/components/site/Footer';
 import { useDocumentMeta } from '@/hooks/use-document-meta';
@@ -262,6 +262,76 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }
         />
       ))}
     </span>
+  );
+}
+
+function MembershipTicket({ plan, planIndex, benefitsOpen, onToggleBenefits }: {
+  plan: CafeMembershipPlan;
+  planIndex: number;
+  benefitsOpen: boolean;
+  onToggleBenefits: () => void;
+}) {
+  const planName = plan.name.replace(/[_-]+/g, ' ').toUpperCase();
+  const duration = plan.duration.toUpperCase();
+  const hasRegularPrice = plan.regularPrice != null && plan.regularPrice > plan.membershipPrice;
+
+  return (
+    <div className="relative mx-auto w-full max-w-[900px] overflow-visible drop-shadow-[0_0_18px_rgba(209,0,255,0.32)]">
+      <svg viewBox="0 0 1600 776" role="img" aria-label={`${plan.name}, ${plan.duration}, ₹${plan.membershipPrice.toLocaleString('en-IN')}`} className="block h-auto w-full overflow-visible">
+        <defs>
+          <linearGradient id={`ticket-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#d000ff" /><stop offset="0.26" stopColor="#fa27e3" /><stop offset="0.50" stopColor="#11dff0" /><stop offset="0.72" stopColor="#ed3de3" /><stop offset="1" stopColor="#00d9ed" />
+          </linearGradient>
+          <linearGradient id={`text-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#fa00e8" /><stop offset="0.5" stopColor="#5e35ff" /><stop offset="1" stopColor="#00dcf4" />
+          </linearGradient>
+          <linearGradient id={`price-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#130021" /><stop offset="0.49" stopColor="#24003c" /><stop offset="0.5" stopColor="#f000d8" /><stop offset="1" stopColor="#fb00d5" />
+          </linearGradient>
+          <linearGradient id={`edge-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f000ff" /><stop offset="0.5" stopColor="#f9b4e8" /><stop offset="1" stopColor="#00efff" />
+          </linearGradient>
+          <filter id={`ticket-glow-${planIndex}`} x="-8%" y="-12%" width="116%" height="128%">
+            <feGaussianBlur stdDeviation="10" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <clipPath id={`ticket-clip-${planIndex}`}>
+            <path d="M145 52 H884 Q916 52 938 76 L958 96 Q973 108 997 108 H1212 Q1238 108 1258 86 L1282 62 Q1304 50 1332 50 H1424 Q1502 50 1502 128 V578 Q1502 612 1482 632 Q1460 650 1450 681 Q1440 721 1394 728 H1247 Q1220 728 1200 710 L1168 684 Q1148 670 1117 670 H145 Q68 670 68 594 V130 Q68 52 145 52 Z" />
+          </clipPath>
+        </defs>
+        <path d="M145 52 H884 Q916 52 938 76 L958 96 Q973 108 997 108 H1212 Q1238 108 1258 86 L1282 62 Q1304 50 1332 50 H1424 Q1502 50 1502 128 V578 Q1502 612 1482 632 Q1460 650 1450 681 Q1440 721 1394 728 H1247 Q1220 728 1200 710 L1168 684 Q1148 670 1117 670 H145 Q68 670 68 594 V130 Q68 52 145 52 Z" fill={`url(#ticket-gradient-${planIndex})`} stroke={`url(#edge-gradient-${planIndex})`} strokeWidth="12" filter={`url(#ticket-glow-${planIndex})`} />
+        <g clipPath={`url(#ticket-clip-${planIndex})`}>
+          <rect x="68" y="50" width="1440" height="680" fill={`url(#ticket-gradient-${planIndex})`} />
+          <ellipse cx="835" cy="430" rx="760" ry="340" fill="#00e5f0" opacity="0.19" />
+          <ellipse cx="410" cy="155" rx="640" ry="310" fill="#fc00e8" opacity="0.34" />
+          <ellipse cx="1420" cy="565" rx="350" ry="310" fill="#00e7f4" opacity="0.45" />
+          <rect x="118" y="371" width="832" height="277" rx="56" fill="#08071b" stroke="#001aff" strokeWidth="15" />
+          <rect x="126" y="379" width="816" height="261" rx="48" fill="none" stroke="#0beaff" strokeWidth="5" />
+          <path d="M275 373 Q290 354 319 354 H756 Q786 354 802 373 L827 407 H251 Z" fill="#05050b" stroke="#05dcff" strokeWidth="5" />
+          <path d="M183 386 L211 386 L178 431 L150 431 Z M224 386 L252 386 L219 431 L191 431 Z" fill="#ed00e6" />
+          <path d="M847 386 L875 386 L908 431 L880 431 Z M806 386 L834 386 L867 431 L839 431 Z" fill="#1b39ff" />
+          <rect x="137" y="531" width="794" height="103" rx="44" fill={`url(#price-gradient-${planIndex})`} />
+          {hasRegularPrice && <path d="M538 536 V631" stroke="#ec38ff" strokeWidth="8" />}
+          {hasRegularPrice && <text x="328" y="605" textAnchor="middle" fill="#fff" fontFamily="Arial Black, Impact, sans-serif" fontSize="72" fontWeight="900" fontStyle="italic">₹{plan.regularPrice!.toLocaleString('en-IN')}</text>}
+          {hasRegularPrice && <path d="M196 584 L451 574" stroke="#ff3d58" strokeWidth="8" />}
+          <text x={hasRegularPrice ? "734" : "536"} y="611" textAnchor="middle" fill="#05040d" fontFamily="Arial Black, Impact, sans-serif" fontSize="103" fontWeight="900" fontStyle="italic" textLength={hasRegularPrice ? "365" : "640"} lengthAdjust="spacingAndGlyphs">₹{plan.membershipPrice.toLocaleString('en-IN')}</text>
+        </g>
+        <path d="M977 204 V638" stroke="#07030f" strokeWidth="8" strokeLinecap="round" />
+        <text x="189" y="160" fill="#09050d" fontFamily="Arial Black, Impact, sans-serif" fontSize="43" fontWeight="900" fontStyle="italic" letterSpacing="2">GAMING CAFE</text>
+        <path d="M515 149 H859" stroke="#09050d" strokeWidth="7" strokeLinecap="round" />
+        <text x="128" y="283" fill="#05040b" fontFamily="Arial Black, Impact, sans-serif" fontSize="124" fontWeight="900" fontStyle="italic" letterSpacing="-5">MEMBERSHIP</text>
+        <path d="M137 324 H338 M741 324 H931" stroke="#08050d" strokeWidth="8" strokeLinecap="round" />
+        <text x="544" y="347" textAnchor="middle" fill="#05040b" fontFamily="Arial Black, Impact, sans-serif" fontSize="60" fontWeight="900" fontStyle="italic" letterSpacing="28">PLAN</text>
+        <text x="544" y="420" textAnchor="middle" fill="#fff" fontFamily="Arial Black, Impact, sans-serif" fontSize="52" fontWeight="900" fontStyle="italic" letterSpacing="3" textLength="430" lengthAdjust="spacingAndGlyphs">{planName}</text>
+        <text x="535" y="520" textAnchor="middle" fill="#05040b" fontFamily="Arial Black, Impact, sans-serif" fontSize="104" fontWeight="900" fontStyle="italic" letterSpacing="-4" textLength="605" lengthAdjust="spacingAndGlyphs">{duration}</text>
+        <circle cx="130" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="130" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
+        <circle cx="870" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="870" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
+        <circle cx="1350" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="1350" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
+        <text x="1263" y="359" textAnchor="middle" fill="#08040e" fontFamily="Arial Black, Impact, sans-serif" fontSize="53" fontWeight="900" fontStyle="italic">TAP TO VIEW</text>
+        <text x="1267" y="458" textAnchor="middle" fill={`url(#text-gradient-${planIndex})`} stroke="#05040b" strokeWidth="2" paintOrder="stroke" fontFamily="Arial Black, Impact, sans-serif" fontSize="86" fontWeight="900" fontStyle="italic" letterSpacing="-2" textLength="450" lengthAdjust="spacingAndGlyphs">BENEFITS</text>
+        <path d="M1067 484 H1229 L1246 497 H1325 L1341 484 H1468" fill="none" stroke="#08040d" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <button type="button" aria-label={`${benefitsOpen ? 'Hide' : 'View'} benefits and notice for ${plan.name}`} aria-expanded={benefitsOpen} aria-controls={`membership-benefits-${planIndex}`} onClick={onToggleBenefits} className="absolute right-[3%] top-[34%] h-[29%] w-[30%] rounded-xl focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white/90" />
+    </div>
   );
 }
 
@@ -847,30 +917,7 @@ export default function CafeDetail() {
                   <h2 id="membership-heading" className="text-base font-bold sm:text-lg">Membership</h2>
                   <span className="h-px flex-1 bg-gradient-to-r from-fuchsia-600 via-violet-500 to-transparent" />
                 </div>
-                <div className="relative isolate overflow-hidden rounded-[1.65rem] border border-fuchsia-400/70 bg-gradient-to-br from-fuchsia-600 via-violet-500 to-cyan-400 p-[2px] shadow-[0_0_28px_rgba(192,38,211,0.22)]">
-                  <div className="relative grid min-h-[164px] grid-cols-[1.35fr_0.85fr] overflow-hidden rounded-[1.55rem] bg-gradient-to-br from-[#fa36df] via-[#4eddfa] to-[#922aff] text-black sm:min-h-[190px]">
-                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70" style={{ background: 'radial-gradient(ellipse at 12% 100%, #00eaff 0%, transparent 38%), radial-gradient(ellipse at 82% 4%, #f500dc 0%, transparent 38%)' }} />
-                    <div className="relative flex min-w-0 flex-col justify-center px-4 py-5 sm:px-8 sm:py-6">
-                      <div className="mb-1 flex items-center gap-2 text-[10px] font-black italic tracking-[0.16em] sm:text-xs">GAMING CAFE <span className="h-[2px] flex-1 bg-black/80" /></div>
-                      <div className="text-[clamp(1.3rem,5.2vw,3.1rem)] font-black italic leading-[0.92] tracking-[-0.06em]">MEMBERSHIP</div>
-                      <div className="mb-3 flex items-center gap-3 text-sm font-black italic tracking-[0.46em] sm:text-lg"><span className="h-[2px] flex-1 bg-black/80" />PLAN<span className="h-[2px] flex-1 bg-black/80" /></div>
-                      <div className="mb-2 inline-flex max-w-full w-fit -skew-x-6 rounded-md bg-black px-4 py-1 text-xs font-black italic tracking-wider text-white sm:px-6 sm:text-base">{membershipPlan.name}</div>
-                      <div className="mb-2 text-[clamp(1.8rem,7vw,3.7rem)] font-black italic leading-none tracking-[-0.04em]">{membershipPlan.duration}</div>
-                      <div className="inline-flex w-fit items-center gap-3 overflow-hidden rounded-full border border-white/60 bg-black/90 px-3 py-1.5 text-white shadow-md sm:px-5 sm:py-2">
-                        {membershipPlan.regularPrice != null && membershipPlan.regularPrice > membershipPlan.membershipPrice && <span className="relative text-sm font-bold text-white/80 sm:text-lg"><span className="absolute left-0 right-0 top-1/2 h-[2px] -rotate-6 bg-red-500" />₹{membershipPlan.regularPrice.toLocaleString('en-IN')}</span>}
-                        {membershipPlan.regularPrice != null && membershipPlan.regularPrice > membershipPlan.membershipPrice && <span className="h-6 w-px bg-fuchsia-400" />}
-                        <span className="text-2xl font-black italic text-fuchsia-400 sm:text-4xl">₹{membershipPlan.membershipPrice.toLocaleString('en-IN')}</span>
-                      </div>
-                    </div>
-                    <div className="relative flex flex-col items-center justify-center border-l-2 border-dashed border-black/70 px-3 text-center sm:px-6">
-                      <span className="mb-2 text-[10px] font-black italic tracking-wider sm:text-sm">TAP TO VIEW</span>
-                      <button type="button" aria-expanded={membershipBenefitsOpen} aria-controls={`membership-benefits-${membershipPlanIndex}`} onClick={() => setMembershipBenefitsOpen((open) => !open)} className="text-[clamp(1.25rem,5vw,2.5rem)] font-black italic leading-none text-fuchsia-950 underline decoration-black/70 decoration-2 underline-offset-4 transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">BENEFITS</button>
-                      <span aria-hidden="true" className="mt-3 h-[3px] w-full max-w-40 bg-black" />
-                    </div>
-                    <span aria-hidden="true" className="absolute -left-3 top-1/2 size-6 -translate-y-1/2 rounded-full border border-black/20 bg-background" />
-                    <span aria-hidden="true" className="absolute -right-3 top-1/2 size-6 -translate-y-1/2 rounded-full border border-black/20 bg-background" />
-                  </div>
-                </div>
+                <MembershipTicket plan={membershipPlan} planIndex={membershipPlanIndex} benefitsOpen={membershipBenefitsOpen} onToggleBenefits={() => setMembershipBenefitsOpen((open) => !open)} />
                 {membershipBenefitsOpen && (
                   <div id={`membership-benefits-${membershipPlanIndex}`} className="rounded-2xl border border-fuchsia-500/30 bg-fuchsia-950/20 px-4 py-3 text-sm text-foreground">
                     <p className="font-semibold">{membershipPlan.name} · {membershipPlan.category}</p>
