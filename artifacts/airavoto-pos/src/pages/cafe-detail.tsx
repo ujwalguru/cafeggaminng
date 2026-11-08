@@ -735,7 +735,7 @@ export default function CafeDetail() {
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative h-56 w-full overflow-hidden sm:h-80 lg:h-96">
-        <img src={isCafeOffline ? '/offline-cafe.png' : (cafe.gallery?.[0] || cafe.image || DEFAULT_CAFE_IMAGE)} alt={isCafeOffline ? `${cafe.name} currently offline` : cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
+        <img src={isCafeOffline ? '/offline-cafe.png' : (cafe.image || cafe.gallery?.[0] || DEFAULT_CAFE_IMAGE)} alt={isCafeOffline ? `${cafe.name} currently offline` : cafe.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_CAFE_IMAGE; }} className="h-full w-full object-cover shadow-[0_14px_40px_oklch(0_0_0/0.45)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.14_0_0/0.4)] via-transparent to-[oklch(0.14_0_0/0.92)]" />
         {/* Back button — stays at the top on both mobile and desktop */}
         <Link
@@ -751,11 +751,11 @@ export default function CafeDetail() {
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:gap-3">
             <div className="min-w-0 flex-1 text-shadow-[0_2px_5px_rgba(0,0,0,0.95)]">
               <h1 className="truncate whitespace-nowrap text-[clamp(1.35rem,5.5vw,1.75rem)] font-extrabold tracking-tight text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] sm:text-3xl lg:text-4xl">{cafe.name}</h1>
-              <p className="mt-0.5 truncate text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:text-sm">{cafe.tagline}</p>
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:mt-3 sm:text-sm">
+              {cafe.websiteVisibility?.about !== false && <p className="mt-0.5 truncate text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:text-sm">{cafe.tagline}</p>}
+              {cafe.websiteVisibility?.location !== false && <div className="mt-2 flex items-center gap-1.5 text-xs text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] sm:mt-3 sm:text-sm">
                 <MapPin className="size-3.5 shrink-0" />
                 <span className="truncate">{cafe.address}</span>
-              </div>
+              </div>}
               <div className="mt-2 flex max-h-7 flex-wrap gap-1.5 overflow-hidden sm:mt-3 sm:max-h-none sm:gap-2">
                 {cafe.categories.map((cat) => (
                     <span key={cat} className="rounded-full border border-white/25 bg-black/30 px-2.5 py-0.5 text-[11px] font-medium text-white/85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] backdrop-blur-sm sm:px-3 sm:py-1 sm:text-xs">
@@ -806,10 +806,10 @@ export default function CafeDetail() {
           <div className="min-w-0 flex-1 space-y-8 sm:space-y-10">
 
             {/* About */}
-            <section>
+            {cafe.websiteVisibility?.about !== false && <section>
               <h2 className="mb-2 text-base font-bold sm:mb-3 sm:text-lg">About {cafe.name}</h2>
               <p className="text-sm leading-relaxed text-muted-foreground">{cafe.about}</p>
-            </section>
+            </section>}
 
             {/* Station boxes — mobile only */}
             <section className="lg:hidden">
@@ -818,7 +818,7 @@ export default function CafeDetail() {
             </section>
 
             {/* Games */}
-            <section>
+            {cafe.websiteVisibility?.games !== false && <section>
               <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4"><div><h2 className="text-base font-bold sm:text-lg">Games Available</h2><p className="mt-1 text-xs text-muted-foreground">Choose your next session</p></div><span className="rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{cafe.games.length} titles</span></div>
               <div className="relative mb-4">
                 <div className="flex gap-2 overflow-x-auto rounded-2xl border border-border/60 bg-muted/20 p-1.5 pr-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -826,7 +826,7 @@ export default function CafeDetail() {
                 </div>
                 <div className="pointer-events-none absolute right-0 top-0 h-full w-12 rounded-r-2xl bg-gradient-to-l from-background via-background/70 to-transparent" />
               </div>
-              <div className="relative">
+                <div className="relative">
               <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 pr-10 [scrollbar-color:theme(colors.primary.DEFAULT)_transparent]">
                 {gamesForTab.map((game) => (
                   <div
@@ -840,9 +840,9 @@ export default function CafeDetail() {
               </div>
               <div className="pointer-events-none absolute right-0 top-0 h-full w-14 rounded-r-2xl bg-gradient-to-l from-background via-background/75 to-transparent" />
               </div>
-            </section>
+            </section>}
 
-            {deviceSpecifications.length > 0 && (
+            {cafe.websiteVisibility?.games !== false && deviceSpecifications.length > 0 && (
               <section>
                 <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4"><div><h2 className="text-base font-bold sm:text-lg">Device Specifications</h2><p className="mt-1 text-xs text-muted-foreground">See the equipment available for each gaming category.</p></div></div>
                 <div className="relative mb-4">
@@ -858,7 +858,7 @@ export default function CafeDetail() {
             )}
 
             {/* Amenities */}
-            <section>
+            {cafe.websiteVisibility?.amenities !== false && <section>
               <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Amenities</h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
                 {cafe.amenities.map((amenity) => {
@@ -873,10 +873,10 @@ export default function CafeDetail() {
                   );
                 })}
               </div>
-            </section>
+            </section>}
 
             {/* Food menu from the café's live POS configuration */}
-            {displayFoodItems.length > 0 && (
+            {cafe.websiteVisibility?.food !== false && displayFoodItems.length > 0 && (
               <section className="border-y border-border/60 py-6 sm:py-8">
                 <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Food Menu</h2>
                 <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
@@ -893,7 +893,7 @@ export default function CafeDetail() {
             )}
 
             {/* Gallery */}
-            {cafe.gallery.length > 1 && (
+            {cafe.websiteVisibility?.gallery !== false && cafe.gallery.length > 1 && (
               <section>
                 <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Gallery</h2>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
@@ -907,7 +907,7 @@ export default function CafeDetail() {
             )}
 
             {/* Pricing */}
-            <section>
+            {cafe.websiteVisibility?.pricing !== false && <section>
               <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Pricing Plans</h2>
               {cafe.priceVisible === false && <p className="mb-3 text-xs text-muted-foreground">Price hidden. Please contact the café for the current rate.</p>}
               <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
@@ -933,10 +933,10 @@ export default function CafeDetail() {
                   </div>
                 ))}
               </div>
-            </section>
+            </section>}
 
             {/* Membership offers from the café's Render profile */}
-            {membershipPlan && (
+            {cafe.websiteVisibility?.membership !== false && membershipPlan && (
               <section aria-labelledby="membership-heading" className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Crown aria-hidden="true" className="size-7 fill-fuchsia-600 text-fuchsia-600" />
@@ -1006,7 +1006,7 @@ export default function CafeDetail() {
             )}
 
             {/* Happy-hour pricing */}
-            {hasHappyHourData && (
+            {cafe.websiteVisibility?.happyHours !== false && hasHappyHourData && (
               <section>
                 <div className="mb-3 flex items-start justify-between gap-3 sm:mb-4">
                   <div>
@@ -1059,7 +1059,7 @@ export default function CafeDetail() {
             )}
 
             {/* Hours */}
-            <section>
+            {cafe.websiteVisibility?.hours !== false && <section>
               <div className="mb-3 flex items-center gap-2 sm:mb-4">
                 <div className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.78_0.16_60/0.14)] text-[oklch(0.84_0.15_60)]"><Clock className="size-4" /></div>
                 <div><h2 className="text-base font-bold sm:text-lg">Opening Hours</h2><p className="text-xs text-muted-foreground">Plan your next gaming session</p></div>
@@ -1077,7 +1077,7 @@ export default function CafeDetail() {
                   <div className="px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-3.5">Hours not available</div>
                 )}
               </div>
-            </section>
+            </section>}
 
             {/* Reviews */}
             <section className="hidden">
@@ -1109,10 +1109,10 @@ export default function CafeDetail() {
             </section>
 
             {/* Location — mobile only */}
-            <section className="lg:hidden">
+            {cafe.websiteVisibility?.location !== false && <section className="lg:hidden">
               <h2 className="mb-3 text-base font-bold">Location</h2>
               <LocationCard />
-            </section>
+            </section>}
           </div>
 
           {/* ── Right sidebar — desktop only ─────────────────────── */}
@@ -1122,12 +1122,14 @@ export default function CafeDetail() {
 
               {/* Price + CTA */}
               <div className="rounded-2xl border border-border/60 bg-card p-5">
-                <p className="text-xs text-muted-foreground">Starting from</p>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className={`text-3xl font-extrabold text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.priceVisible === false ? 0 : cafe.pricePerHour}</span>
-                  <span className="text-sm text-muted-foreground">/ hour</span>
-                </div>
-                <div className="mt-4 space-y-2">
+                {cafe.websiteVisibility?.pricing !== false && <>
+                  <p className="text-xs text-muted-foreground">Starting from</p>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <span className={`text-3xl font-extrabold text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.priceVisible === false ? 0 : cafe.pricePerHour}</span>
+                    <span className="text-sm text-muted-foreground">/ hour</span>
+                  </div>
+                </>}
+                {cafe.websiteVisibility?.contact !== false && <div className="mt-4 space-y-2">
                   <a
                     href={`tel:${cafe.phone}`}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
@@ -1142,10 +1144,10 @@ export default function CafeDetail() {
                   >
                     <MessageCircle className="size-4" /> WhatsApp
                   </a>
-                </div>
+                </div>}
               </div>
 
-              <LocationCard />
+              {cafe.websiteVisibility?.location !== false && <LocationCard />}
             </div>
           </aside>
         </div>
@@ -1173,24 +1175,24 @@ export default function CafeDetail() {
       {/* ── Mobile sticky booking bar ─────────────────────────── */}
       <nav className="fixed inset-x-0 bottom-0 z-[60] border-t border-border/60 bg-[oklch(0.08_0_0/0.98)] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_oklch(0_0_0/0.35)] backdrop-blur-xl lg:hidden" aria-label="Café actions">
         <div className="grid grid-cols-[1fr_1fr_1fr] items-center gap-2">
-          <div className="min-w-0 text-center">
+          {cafe.websiteVisibility?.pricing !== false && <div className="min-w-0 text-center">
             <p className="text-[10px] font-medium text-muted-foreground">Starting price</p>
             <p className={`truncate text-base font-extrabold leading-tight text-foreground ${cafe.priceVisible === false ? 'blur-[5px] select-none' : ''}`}>₹{cafe.priceVisible === false ? 0 : cafe.pricePerHour}<span className="text-xs font-normal text-muted-foreground">/hr</span></p>
-          </div>
-          <a
+          </div>}
+          {cafe.websiteVisibility?.contact !== false && <a
             href={`tel:${cafe.phone}`}
             className="flex min-h-12 items-center justify-center gap-1 rounded-xl border border-border px-1.5 py-2.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
           >
             <Phone className="size-4" /> Phone
-          </a>
-          <a
+          </a>}
+          {cafe.websiteVisibility?.contact !== false && <a
             href={`https://wa.me/${cafe.phone.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex min-h-12 items-center justify-center gap-1 rounded-xl bg-primary px-1.5 py-2.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90"
           >
             <MessageCircle className="size-4" /> WhatsApp Contact
-          </a>
+          </a>}
         </div>
       </nav>
 

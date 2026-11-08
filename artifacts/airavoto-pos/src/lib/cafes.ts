@@ -87,6 +87,7 @@ export interface Cafe {
   maps: string;
   plans: CafePlan[];
   membershipPlans?: CafeMembershipPlan[];
+  websiteVisibility?: Partial<Record<'about' | 'gallery' | 'amenities' | 'games' | 'food' | 'pricing' | 'happyHours' | 'hours' | 'membership' | 'location' | 'contact', boolean>>;
   reviews: CafeReview[];
   games: string[];
   gameTags?: Array<{ name: string; platform: string }>;

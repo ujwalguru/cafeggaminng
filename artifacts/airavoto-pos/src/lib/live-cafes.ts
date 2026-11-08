@@ -549,7 +549,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
         normalizedHours[0]?.time ??
         "Live status",
     ),
-    image: String(gallery[0] || metadata.image || DEFAULT_CAFE_IMAGE),
+    image: String(metadata.image || gallery[0] || DEFAULT_CAFE_IMAGE),
     gallery,
     categories: snapshot.categories,
     amenities: displayStrings(metadata.amenities) as Cafe["amenities"],
@@ -596,6 +596,7 @@ export function liveSnapshotToCafe(snapshot: LiveCafeSnapshot): Cafe {
         benefits: String(plan.benefits ?? ""),
         notice: String(plan.notice ?? ""),
       })),
+    websiteVisibility: metadata.websiteVisibility && typeof metadata.websiteVisibility === "object" ? metadata.websiteVisibility : {},
     reviews: [],
     games: displayStrings(metadata.games),
     gameTags: normalizeGameTags(metadata.games),
