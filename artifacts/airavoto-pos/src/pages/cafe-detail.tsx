@@ -309,11 +309,11 @@ function MembershipTicket({ plan, planIndex, benefitsOpen, onToggleBenefits }: {
           <path d="M275 373 Q290 354 319 354 H756 Q786 354 802 373 L827 407 H251 Z" fill="#05050b" stroke="#05dcff" strokeWidth="5" />
           <path d="M183 386 L211 386 L178 431 L150 431 Z M224 386 L252 386 L219 431 L191 431 Z" fill="#ed00e6" />
           <path d="M847 386 L875 386 L908 431 L880 431 Z M806 386 L834 386 L867 431 L839 431 Z" fill="#1b39ff" />
-          <rect x="137" y="531" width="794" height="103" rx="44" fill={`url(#price-gradient-${planIndex})`} />
+          <rect x="137" y="531" width="794" height="103" rx="44" fill="#000000" />
           {hasRegularPrice && <path d="M538 536 V631" stroke="#ec38ff" strokeWidth="8" />}
           {hasRegularPrice && <text x="328" y="605" textAnchor="middle" fill="#fff" fontFamily="Arial Black, Impact, sans-serif" fontSize="72" fontWeight="900" fontStyle="italic">₹{plan.regularPrice!.toLocaleString('en-IN')}</text>}
           {hasRegularPrice && <path d="M196 584 L451 574" stroke="#ff3d58" strokeWidth="8" />}
-          <text x={hasRegularPrice ? "734" : "536"} y="611" textAnchor="middle" fill="#05040d" fontFamily="Arial Black, Impact, sans-serif" fontSize="103" fontWeight="900" fontStyle="italic" textLength={hasRegularPrice ? "365" : "640"} lengthAdjust="spacingAndGlyphs">₹{plan.membershipPrice.toLocaleString('en-IN')}</text>
+          <text x={hasRegularPrice ? "734" : "536"} y="611" textAnchor="middle" fill="#ff00e8" fontFamily="Arial Black, Impact, sans-serif" fontSize="103" fontWeight="900" fontStyle="italic" textLength={hasRegularPrice ? "365" : "640"} lengthAdjust="spacingAndGlyphs">₹{plan.membershipPrice.toLocaleString('en-IN')}</text>
         </g>
         <path d="M977 204 V638" stroke="#07030f" strokeWidth="8" strokeLinecap="round" />
         <text x="189" y="160" fill="#09050d" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="43" fontWeight="800" fontStyle="italic" letterSpacing="2">GAMING CAFE</text>
@@ -321,7 +321,7 @@ function MembershipTicket({ plan, planIndex, benefitsOpen, onToggleBenefits }: {
         <text x="128" y="283" fill="#05040b" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="124" fontWeight="800" fontStyle="italic" letterSpacing="-7" textLength="810" lengthAdjust="spacingAndGlyphs">MEMBERSHIP</text>
         <path d="M137 324 H338 M741 324 H931" stroke="#08050d" strokeWidth="8" strokeLinecap="round" />
         <text x="544" y="347" textAnchor="middle" fill="#05040b" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="60" fontWeight="800" fontStyle="italic" letterSpacing="28">PLAN</text>
-        <text x="544" y="420" textAnchor="middle" fill="#fff" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="52" fontWeight="800" fontStyle="italic" letterSpacing="3" textLength="430" lengthAdjust="spacingAndGlyphs">{planName}</text>
+        <text x="544" y="420" textAnchor="middle" fill="#fff" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize={planName.length > 12 ? "42" : planName.length > 9 ? "46" : "52"} fontWeight="800" fontStyle="italic" letterSpacing={planName.length > 12 ? "1" : "3"} textLength={planName.length > 12 ? "520" : "430"} lengthAdjust="spacingAndGlyphs">{planName}</text>
         <text x="535" y="520" textAnchor="middle" fill="#05040b" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="104" fontWeight="800" fontStyle="italic" letterSpacing="-4" textLength="605" lengthAdjust="spacingAndGlyphs">{duration}</text>
         <circle cx="130" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="130" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
         <circle cx="870" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="870" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
