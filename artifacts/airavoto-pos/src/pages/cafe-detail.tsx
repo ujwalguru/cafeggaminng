@@ -330,9 +330,13 @@ function MembershipTicket({ plan, planIndex, benefitsOpen, onToggleBenefits }: {
         <text x="1267" y="458" textAnchor="middle" fill={`url(#text-gradient-${planIndex})`} stroke="#05040b" strokeWidth="2" paintOrder="stroke" fontFamily="Arial Black, Impact, sans-serif" fontSize="86" fontWeight="900" fontStyle="italic" letterSpacing="-2" textLength="450" lengthAdjust="spacingAndGlyphs">BENEFITS</text>
         <path d="M1067 484 H1229 L1246 497 H1325 L1341 484 H1468" fill="none" stroke="#08040d" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <button type="button" aria-label={`${benefitsOpen ? 'Hide' : 'View'} benefits and notice for ${plan.name}`} aria-expanded={benefitsOpen} aria-controls={`membership-benefits-${planIndex}`} onClick={onToggleBenefits} className="absolute right-[3%] top-[34%] h-[29%] w-[30%] rounded-xl focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white/90" />
+      <button type="button" aria-label={`${benefitsOpen ? 'Hide' : 'View'} benefits and notice for ${plan.name}`} aria-expanded={benefitsOpen} aria-controls="membership-info-panel" onClick={onToggleBenefits} className="absolute right-[3%] top-[34%] h-[29%] w-[30%] rounded-xl focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white/90" />
     </div>
   );
+}
+
+function membershipTextPoints(text: string) {
+  return text.split(/[\r\n;•]+/).map((point) => point.replace(/^\s*[-*•]\s*/, '').trim()).filter(Boolean);
 }
 
 export default function CafeDetail() {
@@ -352,6 +356,7 @@ export default function CafeDetail() {
   const [gameTab, setGameTab] = useState('PC');
   const [membershipPlanIndex, setMembershipPlanIndex] = useState(0);
   const [membershipBenefitsOpen, setMembershipBenefitsOpen] = useState(false);
+  const [membershipInfoTab, setMembershipInfoTab] = useState<'benefits' | 'terms'>('benefits');
   const [stationTab, setStationTab] = useState<'seats' | 'suggestion'>('seats');
   const [suggestionDate, setSuggestionDate] = useState(() => localDateKey(new Date()));
   const [suggestionDuration, setSuggestionDuration] = useState(60);
@@ -917,20 +922,53 @@ export default function CafeDetail() {
                   <h2 id="membership-heading" className="text-base font-bold sm:text-lg">Membership</h2>
                   <span className="h-px flex-1 bg-gradient-to-r from-fuchsia-600 via-violet-500 to-transparent" />
                 </div>
-                <MembershipTicket plan={membershipPlan} planIndex={membershipPlanIndex} benefitsOpen={membershipBenefitsOpen} onToggleBenefits={() => setMembershipBenefitsOpen((open) => !open)} />
-                {membershipBenefitsOpen && (
-                  <div id={`membership-benefits-${membershipPlanIndex}`} className="rounded-2xl border border-fuchsia-500/30 bg-fuchsia-950/20 px-4 py-3 text-sm text-foreground">
-                    <p className="font-semibold">{membershipPlan.name} · {membershipPlan.category}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{membershipPlan.benefits || 'No additional benefits listed.'}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Validity: {membershipPlan.validity}</p>
-                    {membershipPlan.notice && <p className="mt-2 text-xs text-muted-foreground">{membershipPlan.notice}</p>}
-                  </div>
-                )}
+                <MembershipTicket plan={membershipPlan} planIndex={membershipPlanIndex} benefitsOpen={membershipBenefitsOpen} onToggleBenefits={() => { setMembershipInfoTab('benefits'); setMembershipBenefitsOpen(true); }} />
                 {membershipPlans.length > 1 && (
                   <div className="flex items-center justify-center gap-3" aria-label="Membership plan carousel controls">
                     <button type="button" aria-label="Previous membership plan" onClick={() => { setMembershipPlanIndex((index) => (index - 1 + membershipPlans.length) % membershipPlans.length); setMembershipBenefitsOpen(false); }} className="flex size-9 items-center justify-center rounded-full border border-fuchsia-500/40 bg-background text-foreground hover:bg-fuchsia-950/30"><ChevronLeft className="size-4" /></button>
                     <span className="text-xs text-muted-foreground" aria-live="polite">{membershipPlanIndex % membershipPlans.length + 1} / {membershipPlans.length}</span>
                     <button type="button" aria-label="Next membership plan" onClick={() => { setMembershipPlanIndex((index) => (index + 1) % membershipPlans.length); setMembershipBenefitsOpen(false); }} className="flex size-9 items-center justify-center rounded-full border border-fuchsia-500/40 bg-background text-foreground hover:bg-fuchsia-950/30"><ChevronRight className="size-4" /></button>
+                  </div>
+                )}
+                {membershipBenefitsOpen && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm" onClick={() => setMembershipBenefitsOpen(false)}>
+                    <section role="dialog" aria-modal="true" aria-labelledby="membership-info-title" className="w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-[#08090d] text-white shadow-[0_24px_80px_rgba(0,0,0,0.8)]" onClick={(event) => event.stopPropagation()}>
+                      <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">Membership details</p>
+                          <h3 id="membership-info-title" className="mt-1 text-lg font-extrabold">{membershipPlan.name}</h3>
+                          <p className="mt-1 text-xs text-white/65">{membershipPlan.duration} · ₹{membershipPlan.membershipPrice.toLocaleString('en-IN')}</p>
+                        </div>
+                        <button type="button" aria-label="Close membership details" onClick={() => setMembershipBenefitsOpen(false)} className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
+                      </div>
+                      <div className="border-b border-white/10 px-5 pt-3">
+                        <div role="tablist" aria-label="Membership information" className="flex gap-6">
+                          <button id="membership-benefits-tab" type="button" role="tab" aria-selected={membershipInfoTab === 'benefits'} aria-controls="membership-info-panel" onClick={() => setMembershipInfoTab('benefits')} className={`border-b-2 px-1 pb-3 text-sm font-bold transition ${membershipInfoTab === 'benefits' ? 'border-fuchsia-400 text-white' : 'border-transparent text-white/55 hover:text-white/85'}`}>Benefits</button>
+                          <button id="membership-terms-tab" type="button" role="tab" aria-selected={membershipInfoTab === 'terms'} aria-controls="membership-info-panel" onClick={() => setMembershipInfoTab('terms')} className={`border-b-2 px-1 pb-3 text-sm font-bold transition ${membershipInfoTab === 'terms' ? 'border-fuchsia-400 text-white' : 'border-transparent text-white/55 hover:text-white/85'}`}>Terms &amp; Conditions</button>
+                        </div>
+                      </div>
+                      <div id="membership-info-panel" role="tabpanel" aria-labelledby={membershipInfoTab === 'benefits' ? 'membership-benefits-tab' : 'membership-terms-tab'} className="max-h-[55vh] overflow-y-auto px-5 py-5">
+                        {membershipInfoTab === 'benefits' ? (
+                          <>
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/55">{membershipPlan.category || 'Membership benefits'}</p>
+                            {membershipTextPoints(membershipPlan.benefits).length ? (
+                              <ul className="space-y-3">{membershipTextPoints(membershipPlan.benefits).map((point, index) => <li key={`${index}-${point}`} className="flex gap-3 text-sm leading-relaxed text-white/90"><span aria-hidden="true" className="mt-[0.62em] size-1.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.65)]" />{point}</li>)}</ul>
+                            ) : <p className="text-sm text-white/60">No benefits are listed for this pass.</p>}
+                          </>
+                        ) : (
+                          <>
+                            <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">Validity</p>
+                              <p className="mt-1 text-sm font-semibold text-white/90">{membershipPlan.validity || 'Not specified'}</p>
+                            </div>
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/55">Terms &amp; Conditions</p>
+                            {membershipTextPoints(membershipPlan.notice).length ? (
+                              <ul className="space-y-3">{membershipTextPoints(membershipPlan.notice).map((point, index) => <li key={`${index}-${point}`} className="flex gap-3 text-sm leading-relaxed text-white/90"><span aria-hidden="true" className="mt-[0.62em] size-1.5 shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_10px_rgba(232,121,249,0.65)]" />{point}</li>)}</ul>
+                            ) : <p className="text-sm text-white/60">No additional terms have been provided by the café.</p>}
+                          </>
+                        )}
+                      </div>
+                    </section>
                   </div>
                 )}
               </section>
