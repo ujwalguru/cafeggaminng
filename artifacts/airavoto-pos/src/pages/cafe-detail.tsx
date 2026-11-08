@@ -279,8 +279,8 @@ function MembershipTicket({ plan, planIndex, benefitsOpen, onToggleBenefits }: {
     <div className="relative mx-auto w-full max-w-[900px] overflow-visible drop-shadow-[0_0_18px_rgba(209,0,255,0.32)]">
       <svg viewBox="0 0 1600 776" role="img" aria-label={`${plan.name}, ${plan.duration}, ₹${plan.membershipPrice.toLocaleString('en-IN')}`} className="block h-auto w-full overflow-visible">
         <defs>
-          <linearGradient id={`ticket-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#d000ff" /><stop offset="0.26" stopColor="#fa27e3" /><stop offset="0.50" stopColor="#11dff0" /><stop offset="0.72" stopColor="#ed3de3" /><stop offset="1" stopColor="#00d9ed" />
+          <linearGradient id={`ticket-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#cb00f7" /><stop offset="0.25" stopColor="#f000dd" /><stop offset="0.39" stopColor="#efa0e9" /><stop offset="0.51" stopColor="#00ddec" /><stop offset="0.72" stopColor="#ee00dc" /><stop offset="1" stopColor="#00d4ed" />
           </linearGradient>
           <linearGradient id={`text-gradient-${planIndex}`} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stopColor="#fa00e8" /><stop offset="0.5" stopColor="#5e35ff" /><stop offset="1" stopColor="#00dcf4" />
@@ -316,18 +316,18 @@ function MembershipTicket({ plan, planIndex, benefitsOpen, onToggleBenefits }: {
           <text x={hasRegularPrice ? "734" : "536"} y="611" textAnchor="middle" fill="#05040d" fontFamily="Arial Black, Impact, sans-serif" fontSize="103" fontWeight="900" fontStyle="italic" textLength={hasRegularPrice ? "365" : "640"} lengthAdjust="spacingAndGlyphs">₹{plan.membershipPrice.toLocaleString('en-IN')}</text>
         </g>
         <path d="M977 204 V638" stroke="#07030f" strokeWidth="8" strokeLinecap="round" />
-        <text x="189" y="160" fill="#09050d" fontFamily="Arial Black, Impact, sans-serif" fontSize="43" fontWeight="900" fontStyle="italic" letterSpacing="2">GAMING CAFE</text>
+        <text x="189" y="160" fill="#09050d" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="43" fontWeight="800" fontStyle="italic" letterSpacing="2">GAMING CAFE</text>
         <path d="M515 149 H859" stroke="#09050d" strokeWidth="7" strokeLinecap="round" />
-        <text x="128" y="283" fill="#05040b" fontFamily="Arial Black, Impact, sans-serif" fontSize="124" fontWeight="900" fontStyle="italic" letterSpacing="-5">MEMBERSHIP</text>
+        <text x="128" y="283" fill="#05040b" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="124" fontWeight="800" fontStyle="italic" letterSpacing="-7" textLength="810" lengthAdjust="spacingAndGlyphs">MEMBERSHIP</text>
         <path d="M137 324 H338 M741 324 H931" stroke="#08050d" strokeWidth="8" strokeLinecap="round" />
-        <text x="544" y="347" textAnchor="middle" fill="#05040b" fontFamily="Arial Black, Impact, sans-serif" fontSize="60" fontWeight="900" fontStyle="italic" letterSpacing="28">PLAN</text>
-        <text x="544" y="420" textAnchor="middle" fill="#fff" fontFamily="Arial Black, Impact, sans-serif" fontSize="52" fontWeight="900" fontStyle="italic" letterSpacing="3" textLength="430" lengthAdjust="spacingAndGlyphs">{planName}</text>
-        <text x="535" y="520" textAnchor="middle" fill="#05040b" fontFamily="Arial Black, Impact, sans-serif" fontSize="104" fontWeight="900" fontStyle="italic" letterSpacing="-4" textLength="605" lengthAdjust="spacingAndGlyphs">{duration}</text>
+        <text x="544" y="347" textAnchor="middle" fill="#05040b" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="60" fontWeight="800" fontStyle="italic" letterSpacing="28">PLAN</text>
+        <text x="544" y="420" textAnchor="middle" fill="#fff" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="52" fontWeight="800" fontStyle="italic" letterSpacing="3" textLength="430" lengthAdjust="spacingAndGlyphs">{planName}</text>
+        <text x="535" y="520" textAnchor="middle" fill="#05040b" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="104" fontWeight="800" fontStyle="italic" letterSpacing="-4" textLength="605" lengthAdjust="spacingAndGlyphs">{duration}</text>
         <circle cx="130" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="130" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
         <circle cx="870" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="870" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
         <circle cx="1350" cy="102" r="33" fill="#04030a" stroke="#14031e" strokeWidth="5" /><circle cx="1350" cy="102" r="27" fill="#03030a" stroke="#555064" strokeOpacity="0.35" strokeWidth="2" />
-        <text x="1263" y="359" textAnchor="middle" fill="#08040e" fontFamily="Arial Black, Impact, sans-serif" fontSize="53" fontWeight="900" fontStyle="italic">TAP TO VIEW</text>
-        <text x="1267" y="458" textAnchor="middle" fill={`url(#text-gradient-${planIndex})`} stroke="#05040b" strokeWidth="2" paintOrder="stroke" fontFamily="Arial Black, Impact, sans-serif" fontSize="86" fontWeight="900" fontStyle="italic" letterSpacing="-2" textLength="450" lengthAdjust="spacingAndGlyphs">BENEFITS</text>
+        <text x="1263" y="359" textAnchor="middle" fill="#08040e" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="53" fontWeight="800" fontStyle="italic">TAP TO VIEW</text>
+        <text x="1267" y="458" textAnchor="middle" fill={`url(#text-gradient-${planIndex})`} stroke="#05040b" strokeWidth="2" paintOrder="stroke" fontFamily="Oxanium, Arial Black, Impact, sans-serif" fontSize="86" fontWeight="800" fontStyle="italic" letterSpacing="-2" textLength="450" lengthAdjust="spacingAndGlyphs">BENEFITS</text>
         <path d="M1067 484 H1229 L1246 497 H1325 L1341 484 H1468" fill="none" stroke="#08040d" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <button type="button" aria-label={`${benefitsOpen ? 'Hide' : 'View'} benefits and notice for ${plan.name}`} aria-expanded={benefitsOpen} aria-controls="membership-info-panel" onClick={onToggleBenefits} className="absolute right-[3%] top-[34%] h-[29%] w-[30%] rounded-xl focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white/90" />
