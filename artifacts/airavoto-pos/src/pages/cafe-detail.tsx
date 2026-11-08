@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'wouter';
 import { Link } from 'wouter';
 import {
@@ -357,6 +357,7 @@ export default function CafeDetail() {
   const [membershipPlanIndex, setMembershipPlanIndex] = useState(0);
   const [membershipBenefitsOpen, setMembershipBenefitsOpen] = useState(false);
   const [membershipInfoTab, setMembershipInfoTab] = useState<'benefits' | 'terms'>('benefits');
+  const membershipCarouselRef = useRef<HTMLDivElement>(null);
   const [stationTab, setStationTab] = useState<'seats' | 'suggestion'>('seats');
   const [suggestionDate, setSuggestionDate] = useState(() => localDateKey(new Date()));
   const [suggestionDuration, setSuggestionDuration] = useState(60);
@@ -405,6 +406,26 @@ export default function CafeDetail() {
   const cafe = liveSnapshot ? liveSnapshotToCafe(liveSnapshot) : undefined;
   const membershipPlans = cafe?.membershipPlans ?? [];
   const membershipPlan = membershipPlans.length ? membershipPlans[membershipPlanIndex % membershipPlans.length] : undefined;
+  const scrollToMembershipPlan = (index: number) => {
+    const carousel = membershipCarouselRef.current;
+    const card = carousel?.children.item(index) as HTMLElement | null;
+    if (carousel && card) {
+      const left = carousel.scrollLeft + card.getBoundingClientRect().left - carousel.getBoundingClientRect().left;
+      carousel.scrollTo({ left, behavior: 'smooth' });
+    }
+    setMembershipBenefitsOpen(false);
+  };
+  const onMembershipCarouselScroll = () => {
+    const carousel = membershipCarouselRef.current;
+    if (!carousel) return;
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+    Array.from(carousel.children).forEach((child, index) => {
+      const distance = Math.abs((child as HTMLElement).getBoundingClientRect().left - carousel.getBoundingClientRect().left);
+      if (distance < closestDistance) { closestIndex = index; closestDistance = distance; }
+    });
+    setMembershipPlanIndex((current) => current === closestIndex ? current : closestIndex);
+  };
   const displayFoodItems = cafe?.foodItems?.length
     ? cafe.foodItems
     : ((liveSnapshot?.metadata?.foodItems ?? liveSnapshot?.metadata?.food_items ?? []) as Array<{ name?: string; title?: string; itemName?: string; price?: number | string; category?: string }>);
@@ -922,14 +943,24 @@ export default function CafeDetail() {
                   <h2 id="membership-heading" className="text-base font-bold sm:text-lg">Membership</h2>
                   <span className="h-px flex-1 bg-gradient-to-r from-fuchsia-600 via-violet-500 to-transparent" />
                 </div>
-                <MembershipTicket plan={membershipPlan} planIndex={membershipPlanIndex} benefitsOpen={membershipBenefitsOpen} onToggleBenefits={() => { setMembershipInfoTab('benefits'); setMembershipBenefitsOpen(true); }} />
-                {membershipPlans.length > 1 && (
-                  <div className="flex items-center justify-center gap-3" aria-label="Membership plan carousel controls">
-                    <button type="button" aria-label="Previous membership plan" onClick={() => { setMembershipPlanIndex((index) => (index - 1 + membershipPlans.length) % membershipPlans.length); setMembershipBenefitsOpen(false); }} className="flex size-9 items-center justify-center rounded-full border border-fuchsia-500/40 bg-background text-foreground hover:bg-fuchsia-950/30"><ChevronLeft className="size-4" /></button>
-                    <span className="text-xs text-muted-foreground" aria-live="polite">{membershipPlanIndex % membershipPlans.length + 1} / {membershipPlans.length}</span>
-                    <button type="button" aria-label="Next membership plan" onClick={() => { setMembershipPlanIndex((index) => (index + 1) % membershipPlans.length); setMembershipBenefitsOpen(false); }} className="flex size-9 items-center justify-center rounded-full border border-fuchsia-500/40 bg-background text-foreground hover:bg-fuchsia-950/30"><ChevronRight className="size-4" /></button>
+                <div ref={membershipCarouselRef} onScroll={onMembershipCarouselScroll} aria-label="Membership plans" className="flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {membershipPlans.map((plan, index) => (
+                    <div key={plan.id || `${plan.name}-${index}`} className="min-w-0 basis-[70%] flex-none snap-start">
+                      <MembershipTicket plan={plan} planIndex={index} benefitsOpen={membershipBenefitsOpen && membershipPlanIndex === index} onToggleBenefits={() => { setMembershipPlanIndex(index); setMembershipInfoTab('benefits'); setMembershipBenefitsOpen(true); }} />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-center gap-3" aria-label="Membership carousel navigation">
+                  <button type="button" aria-label="Previous membership plan" disabled={membershipPlans.length < 2} onClick={() => scrollToMembershipPlan((membershipPlanIndex - 1 + membershipPlans.length) % membershipPlans.length)} className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-30"><ChevronLeft className="size-4" /></button>
+                  <div className="flex items-center gap-2" aria-label="Membership carousel pages">
+                    {[0, 1, 2].map((dot) => {
+                      const activeDot = Math.min(2, Math.floor(membershipPlanIndex * 3 / membershipPlans.length));
+                      const targetIndex = Math.min(membershipPlans.length - 1, Math.floor(dot * membershipPlans.length / 3));
+                      return <button key={dot} type="button" aria-label={`Go to membership group ${dot + 1}`} aria-current={activeDot === dot ? 'true' : undefined} onClick={() => scrollToMembershipPlan(targetIndex)} className={`size-2.5 rounded-full transition-colors ${activeDot === dot ? 'bg-violet-500' : 'bg-neutral-600 hover:bg-neutral-400'}`} />;
+                    })}
                   </div>
-                )}
+                  <button type="button" aria-label="Next membership plan" disabled={membershipPlans.length < 2} onClick={() => scrollToMembershipPlan((membershipPlanIndex + 1) % membershipPlans.length)} className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-30"><ChevronRight className="size-4" /></button>
+                </div>
                 {membershipBenefitsOpen && (
                   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm" onClick={() => setMembershipBenefitsOpen(false)}>
                     <section role="dialog" aria-modal="true" aria-labelledby="membership-info-title" className="w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-[#08090d] text-white shadow-[0_24px_80px_rgba(0,0,0,0.8)]" onClick={(event) => event.stopPropagation()}>
